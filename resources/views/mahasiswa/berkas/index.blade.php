@@ -62,7 +62,7 @@
 </ul>
 
 <div class="tab-content" id="berkasTabContent">
-  
+
   <!-- TAB 1: Dokumen Pendukung -->
   <div class="tab-pane fade {{ $activeTab === 'dokumen' ? 'show active' : '' }}" id="dokumen" role="tabpanel">
     <div class="row g-4">
@@ -221,7 +221,7 @@
             <div class="card">
                 <div class="card-header bg-primary text-white"><i class="fa-solid fa-lightbulb me-2"></i> Upload Gagasan Kreatif</div>
                 <div class="card-body text-center p-5">
-                    @php 
+                    @php
                         $gk = $berkass->where('nama_berkas', 'Naskah Gagasan Kreatif')->first();
                     @endphp
 
@@ -257,7 +257,7 @@
         </div>
     </div>
   </div>
-  
+
   <!-- TAB 4: Video Bahasa Inggris -->
   <div class="tab-pane fade {{ $activeTab === 'video_bi' ? 'show active' : '' }}" id="video_bi" role="tabpanel">
     <div class="row justify-content-center">
@@ -265,7 +265,7 @@
             <div class="card">
                 <div class="card-header bg-primary text-white"><i class="fa-solid fa-video me-2"></i> Upload Video Bahasa Inggris</div>
                 <div class="card-body text-center p-5">
-                    @php 
+                    @php
                         $video = $berkass->where('nama_berkas', 'Video Bahasa Inggris')->first();
                     @endphp
 

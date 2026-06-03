@@ -56,3 +56,10 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
+## evaluasi semantara perhitungan GAP
+- Perubahan mlm ini hanya ada di View/Juri/show.blade.php
+- Skema perhitungan cu itu sistem akan memberikan rekomendasi nilainya dan juri tetap input nilai nya
+- test cek kembali skema perhitunga CU portofolio apakah sudah sesuai
+- besok testing semua penilaian dari juri input 3, 3 nya

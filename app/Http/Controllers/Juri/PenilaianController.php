@@ -23,7 +23,7 @@ class PenilaianController extends Controller
     {
         $kriterias = KriteriaPenilaian::all();
         $pendaftaran->load('mahasiswa.user', 'berkas');
-        
+
         $rubrik_naskah = \App\Models\RubrikNaskahGk::all();
         $rubrik_presentasi = \App\Models\RubrikPresentasiGk::all();
         $rubrik_inggris = \App\Models\RubrikBahasaInggris::all();
@@ -62,7 +62,7 @@ class PenilaianController extends Controller
         return view('juri.penilaian.show', compact(
             'pendaftaran', 'kriterias', 'rubrik_naskah', 'rubrik_presentasi', 'rubrik_inggris', 'rubrik_wawancara_cu',
             'penilaian_naskah', 'penilaian_presentasi', 'penilaian_inggris', 'penilaian_wawancara_cu',
-            'total_rekomendasi', 'existing_a01'
+            'total_rekomendasi', 'existing_a01', 'portofolios' //ini yang aku tambahkan
         ));
     }
 

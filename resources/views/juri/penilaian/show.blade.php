@@ -36,6 +36,90 @@
                 @endforelse
             </ul>
         </div>
+
+        <div class="card mt-4">
+    <div class="card-header">
+        <i class="fa-solid fa-award me-2 text-primary"></i>
+        <strong>Sertifikat Capaian Unggulan</strong>
+    </div>
+
+    <div class="card-body p-3">
+
+        @forelse($pendaftaran->portofolios as $porto)
+
+        <div class="card shadow-sm border-0 mb-3 rounded-3">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-start">
+
+                    <div>
+                        <h6 class="fw-bold mb-2">
+                            {{ $porto->nama_prestasi }}
+                        </h6>
+
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr>
+                                <td width="120">Jenjang</td>
+                                <td>: {{ $porto->kategori_jenjang }}</td>
+                            </tr>
+
+                            <tr>
+                                <td>Kategori CU</td>
+                                <td>: {{ $porto->rubrikCu->wujud_capaian_unggulan ?? '-' }}</td>
+                            </tr>
+
+                            <tr>
+                                <td>Tempat</td>
+                                <td>: {{ $porto->tempat }}</td>
+                            </tr>
+
+                            <tr>
+                                <td>Tanggal</td>
+                                <td>: {{ \Carbon\Carbon::parse($porto->tanggal_pelaksanaan)->format('d M Y') }}</td>
+                            </tr>
+
+                            <tr>
+                                <td>Status</td>
+                                <td>
+                                    :
+                                    <span class="badge bg-success">
+                                        {{ $porto->status_validasi }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        @if($porto->skor_rekomendasi)
+                        <span class="badge bg-info mt-2">
+                            Skor {{ $porto->skor_rekomendasi }}
+                        </span>
+                        @endif
+                    </div>
+
+                    <div>
+                        <a href="{{ asset('storage/'.$porto->file_path) }}"
+                           target="_blank"
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        @empty
+
+        <div class="text-center text-muted py-3">
+            Belum ada sertifikat capaian unggulan.
+        </div>
+
+        @endforelse
+
+    </div>
+</div>
+
     </div>
 
     <div class="col-md-8">
@@ -44,7 +128,7 @@
             <div class="card-body">
                 <form action="{{ route('juri.penilaian.store', $pendaftaran) }}" method="POST">
                     @csrf
-                    
+
                     <ul class="nav nav-tabs mb-4" id="penilaianTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="cu-berkas-tab" data-bs-toggle="tab" data-bs-target="#cuberkas" type="button" role="tab">CU Berkas</button>
@@ -62,13 +146,13 @@
                             <button class="nav-link" id="inggris-tab" data-bs-toggle="tab" data-bs-target="#inggris" type="button" role="tab">B. Inggris</button>
                         </li>
                     </ul>
-                    
+
                     <div class="tab-content pt-2" id="penilaianTabsContent">
                         <!-- Capaian Unggulan Berkas -->
                         <div class="tab-pane fade show active" id="cuberkas" role="tabpanel">
                             <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-medal me-1"></i> Validasi Skor Capaian Unggulan Berkas (A01)</h6>
                             <div class="alert alert-info small mb-4">Validasi skor rekomendasi capaian unggulan yang telah diverifikasi oleh admin.</div>
-                            
+
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Skor Akhir Capaian Unggulan Berkas (A01) - Skala 60-100</label>
                                 <div class="input-group">
