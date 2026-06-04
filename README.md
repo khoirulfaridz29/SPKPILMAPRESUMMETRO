@@ -58,8 +58,21 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
 
+### Jalankan urutan ini
+
+git add .
+
+git status
+
+git commit -m "Perbaikan tampilan portofolio dan penilaian juri"
+
+git push origin master
+
+
+
 ## evaluasi semantara perhitungan GAP
 - Perubahan mlm ini hanya ada di View/Juri/show.blade.php
 - Skema perhitungan cu itu sistem akan memberikan rekomendasi nilainya dan juri tetap input nilai nya
 - test cek kembali skema perhitunga CU portofolio apakah sudah sesuai
 - besok testing semua penilaian dari juri input 3, 3 nya
+- di tampilan perhitungan Portofolio CU masih memunculkan rekomendasi 60 (di ganti)

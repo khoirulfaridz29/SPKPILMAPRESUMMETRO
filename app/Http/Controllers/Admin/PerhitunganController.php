@@ -86,19 +86,23 @@ class PerhitunganController extends Controller
                 foreach ($portofolios as $porto) {
                     $skor = $porto->skor_rekomendasi;
                     if ($skor) {
-                        preg_match('/[0-9.]+/', $skor, $matches);
-                        if (isset($matches[0])) {
-                            $total_rekomendasi += (float) $matches[0];
+                        // Ambil semua angka, pakai NILAI TENGAH bila berupa range.
+                        // Contoh: "40-50" => (40+50)/2 = 45 ; "80" => 80
+                        preg_match_all('/\d+(?:\.\d+)?/', $skor, $matches);
+                        if (!empty($matches[0])) {
+                            $angka = array_map('floatval', $matches[0]);
+                            $total_rekomendasi += array_sum($angka) / count($angka);
                         }
                     }
                 }
                 if ($total_rekomendasi > 100) $total_rekomendasi = 100;
-                if ($total_rekomendasi < 60) $total_rekomendasi = 60; // Validasi minimal 60
+                // Catatan: tidak ada lantai minimal untuk CU Berkas (mengikuti nilai portofolio apa adanya).
 
-                // Simpan/update otomatis untuk semua juri yang ditugaskan
+                // Isi A01 hanya bila juri BELUM mengisi (firstOrCreate),
+                // agar penyesuaian +/-10 yang dilakukan juri tidak tertimpa.
                 $penugasans = \App\Models\PenugasanJuri::where('pendaftaran_id', $pendaftaran->id)->get();
                 foreach ($penugasans as $penugasan) {
-                    Penilaian::updateOrCreate(
+                    Penilaian::firstOrCreate(
                         [
                             'juri_id' => $penugasan->juri_id,
                             'pendaftaran_id' => $pendaftaran->id,
@@ -254,11 +258,21 @@ class PerhitunganController extends Controller
             ->orderBy('ranking')->get();
         $kriterias = KriteriaPenilaian::all();
         $kriteriasMap = $kriterias->pluck('id', 'kode_kriteria');
+        // Peta bobot kriteria dari database (kode => bobot persen).
+        // Dipakai agar perhitungan di export SELALU sinkron dengan proses() yang
+        // memakai $k->bobot, sehingga tidak melenceng bila bobot diubah dari DB.
+        $bobotMap = $kriterias->pluck('bobot', 'kode_kriteria');
         $juries = \App\Models\User::where('role', 'juri')->get();
 
         if ($hasilList->isEmpty()) {
             return back()->with('error', 'Belum ada hasil perhitungan untuk diekspor.');
         }
+
+        // Helper: nilai rata-rata kriteria dikali bobot kriteria dari DB (skala persen).
+        // Mengganti hardcode 0.35 / 0.30 agar konsisten dengan proses().
+        $weighted = function ($kode, $avg) use ($bobotMap) {
+            return $avg * ($bobotMap->get($kode, 0) / 100.0);
+        };
 
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
 
@@ -443,11 +457,11 @@ class PerhitunganController extends Controller
             
             $sheet4->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet4->setCellValue('B' . $row, number_format($avgA01, 4));
-            $sheet4->setCellValue('C' . $row, number_format($avgA01 * 0.35, 4));
+            $sheet4->setCellValue('C' . $row, number_format($weighted('A01', $avgA01), 4));
             $sheet4->setCellValue('D' . $row, number_format($avgA02, 4));
-            $sheet4->setCellValue('E' . $row, number_format($avgA02 * 0.35, 4));
+            $sheet4->setCellValue('E' . $row, number_format($weighted('A02', $avgA02), 4));
             $sheet4->setCellValue('F' . $row, number_format($avgA03, 4));
-            $sheet4->setCellValue('G' . $row, number_format($avgA03 * 0.30, 4));
+            $sheet4->setCellValue('G' . $row, number_format($weighted('A03', $avgA03), 4));
             $styleData($sheet4, "A$row:G$row");
             $sheet4->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -484,11 +498,11 @@ class PerhitunganController extends Controller
             
             $sheet5->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet5->setCellValue('B' . $row, number_format($avgF01, 4));
-            $sheet5->setCellValue('C' . $row, number_format($avgF01 * 0.35, 4));
+            $sheet5->setCellValue('C' . $row, number_format($weighted('F01', $avgF01), 4));
             $sheet5->setCellValue('D' . $row, number_format($avgF02, 4));
-            $sheet5->setCellValue('E' . $row, number_format($avgF02 * 0.35, 4));
+            $sheet5->setCellValue('E' . $row, number_format($weighted('F02', $avgF02), 4));
             $sheet5->setCellValue('F' . $row, number_format($avgF03, 4));
-            $sheet5->setCellValue('G' . $row, number_format($avgF03 * 0.30, 4));
+            $sheet5->setCellValue('G' . $row, number_format($weighted('F03', $avgF03), 4));
             $styleData($sheet5, "A$row:G$row");
             $sheet5->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -519,26 +533,14 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            $convertToScale10 = function($score) {
-                if ($score <= 12.0) return 1;
-                if ($score <= 15.0) return 2;
-                if ($score <= 18.0) return 3;
-                if ($score <= 21.0) return 4;
-                if ($score <= 24.0) return 5;
-                if ($score <= 26.0) return 6;
-                if ($score <= 28.0) return 7;
-                if ($score <= 30.0) return 8;
-                if ($score <= 32.0) return 9;
-                return 10;
-            };
             
             $sheet6->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
-            $sheet6->setCellValue('B' . $row, $convertToScale10($getAvg('A01') * 0.35));
-            $sheet6->setCellValue('C' . $row, $convertToScale10($getAvg('A02') * 0.35));
-            $sheet6->setCellValue('D' . $row, $convertToScale10($getAvg('A03') * 0.30));
-            $sheet6->setCellValue('E' . $row, $convertToScale10($getAvg('F01') * 0.35));
-            $sheet6->setCellValue('F' . $row, $convertToScale10($getAvg('F02') * 0.35));
-            $sheet6->setCellValue('G' . $row, $convertToScale10($getAvg('F03') * 0.30));
+            $sheet6->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))));
+            $sheet6->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))));
+            $sheet6->setCellValue('D' . $row, $this->convertToScale10($weighted('A03', $getAvg('A03'))));
+            $sheet6->setCellValue('E' . $row, $this->convertToScale10($weighted('F01', $getAvg('F01'))));
+            $sheet6->setCellValue('F' . $row, $this->convertToScale10($weighted('F02', $getAvg('F02'))));
+            $sheet6->setCellValue('G' . $row, $this->convertToScale10($weighted('F03', $getAvg('F03'))));
             $styleData($sheet6, "A$row:G$row");
             $sheet6->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -569,26 +571,14 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            $convertToScale10 = function($score) {
-                if ($score <= 12.0) return 1;
-                if ($score <= 15.0) return 2;
-                if ($score <= 18.0) return 3;
-                if ($score <= 21.0) return 4;
-                if ($score <= 24.0) return 5;
-                if ($score <= 26.0) return 6;
-                if ($score <= 28.0) return 7;
-                if ($score <= 30.0) return 8;
-                if ($score <= 32.0) return 9;
-                return 10;
-            };
             
             $sheet7->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
-            $sheet7->setCellValue('B' . $row, $convertToScale10($getAvg('A01') * 0.35) - 10);
-            $sheet7->setCellValue('C' . $row, $convertToScale10($getAvg('A02') * 0.35) - 10);
-            $sheet7->setCellValue('D' . $row, $convertToScale10($getAvg('A03') * 0.30) - 10);
-            $sheet7->setCellValue('E' . $row, $convertToScale10($getAvg('F01') * 0.35) - 10);
-            $sheet7->setCellValue('F' . $row, $convertToScale10($getAvg('F02') * 0.35) - 10);
-            $sheet7->setCellValue('G' . $row, $convertToScale10($getAvg('F03') * 0.30) - 10);
+            $sheet7->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))) - 10);
+            $sheet7->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))) - 10);
+            $sheet7->setCellValue('D' . $row, $this->convertToScale10($weighted('A03', $getAvg('A03'))) - 10);
+            $sheet7->setCellValue('E' . $row, $this->convertToScale10($weighted('F01', $getAvg('F01'))) - 10);
+            $sheet7->setCellValue('F' . $row, $this->convertToScale10($weighted('F02', $getAvg('F02'))) - 10);
+            $sheet7->setCellValue('G' . $row, $this->convertToScale10($weighted('F03', $getAvg('F03'))) - 10);
             $styleData($sheet7, "A$row:G$row");
             $sheet7->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -622,52 +612,20 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            $convertToScale10 = function($score) {
-                if ($score <= 12.0) return 1;
-                if ($score <= 15.0) return 2;
-                if ($score <= 18.0) return 3;
-                if ($score <= 21.0) return 4;
-                if ($score <= 24.0) return 5;
-                if ($score <= 26.0) return 6;
-                if ($score <= 28.0) return 7;
-                if ($score <= 30.0) return 8;
-                if ($score <= 32.0) return 9;
-                return 10;
-            };
-            $getGapWeight = function($gap) {
-                return match ($gap) {
-                    0 => 10.0,
-                    1 => 9.5,
-                    -1 => 9.0,
-                    2 => 8.5,
-                    -2 => 8.0,
-                    3 => 7.5,
-                    -3 => 7.0,
-                    4 => 6.5,
-                    -4 => 6.0,
-                    5 => 5.5,
-                    -5 => 5.0,
-                    -6 => 4.0,
-                    -7 => 3.0,
-                    -8 => 2.0,
-                    -9 => 1.0,
-                    default => $gap < 0 ? max(1.0, 10.0 + $gap) : max(1.0, 10.0 - $gap)
-                };
-            };
             
-            $a01 = $convertToScale10($getAvg('A01') * 0.35);
-            $a02 = $convertToScale10($getAvg('A02') * 0.35);
-            $a03 = $convertToScale10($getAvg('A03') * 0.30);
-            $f01 = $convertToScale10($getAvg('F01') * 0.35);
-            $f02 = $convertToScale10($getAvg('F02') * 0.35);
-            $f03 = $convertToScale10($getAvg('F03') * 0.30);
+            $a01 = $this->convertToScale10($weighted('A01', $getAvg('A01')));
+            $a02 = $this->convertToScale10($weighted('A02', $getAvg('A02')));
+            $a03 = $this->convertToScale10($weighted('A03', $getAvg('A03')));
+            $f01 = $this->convertToScale10($weighted('F01', $getAvg('F01')));
+            $f02 = $this->convertToScale10($weighted('F02', $getAvg('F02')));
+            $f03 = $this->convertToScale10($weighted('F03', $getAvg('F03')));
             
-            $wA01 = $getGapWeight($a01 - 10);
-            $wA02 = $getGapWeight($a02 - 10);
-            $wA03 = $getGapWeight($a03 - 10);
-            $wF01 = $getGapWeight($f01 - 10);
-            $wF02 = $getGapWeight($f02 - 10);
-            $wF03 = $getGapWeight($f03 - 10);
+            $wA01 = $this->getGapWeight($a01 - 10);
+            $wA02 = $this->getGapWeight($a02 - 10);
+            $wA03 = $this->getGapWeight($a03 - 10);
+            $wF01 = $this->getGapWeight($f01 - 10);
+            $wF02 = $this->getGapWeight($f02 - 10);
+            $wF03 = $this->getGapWeight($f03 - 10);
             
             $nsf = ($wA01 + $wA02 + $wA03) / 3.0;
             $ncf = ($wF01 + $wF02 + $wF03) / 3.0;

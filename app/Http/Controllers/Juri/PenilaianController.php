@@ -45,9 +45,12 @@ class PenilaianController extends Controller
         foreach ($portofolios as $porto) {
             $skor = $porto->skor_rekomendasi;
             if ($skor) {
-                preg_match('/[0-9.]+/', $skor, $matches);
-                if (isset($matches[0])) {
-                    $total_rekomendasi += (float) $matches[0];
+                // Ambil semua angka, lalu pakai NILAI TENGAH bila berupa range.
+                // Contoh: "40-50" => (40+50)/2 = 45 ; "80" => 80
+                preg_match_all('/\d+(?:\.\d+)?/', $skor, $matches);
+                if (!empty($matches[0])) {
+                    $angka = array_map('floatval', $matches[0]);
+                    $total_rekomendasi += array_sum($angka) / count($angka);
                 }
             }
         }
@@ -119,9 +122,34 @@ class PenilaianController extends Controller
 
         // 1. Capaian Unggulan (CU) Berkas (A01)
         if (isset($kriterias['A01']) && $request->has('nilai_a01')) {
+            // Hitung nilai rekomendasi portofolio (nilai tengah range) sebagai acuan batas.
+            $rekomendasi = 0;
+            $portofolios = \App\Models\PortofolioCu::where('pendaftaran_id', $pendaftaran->id)
+                ->where('status_validasi', 'Valid')->get();
+            foreach ($portofolios as $porto) {
+                $skor = $porto->skor_rekomendasi;
+                if ($skor) {
+                    preg_match_all('/\d+(?:\.\d+)?/', $skor, $m);
+                    if (!empty($m[0])) {
+                        $angka = array_map('floatval', $m[0]);
+                        $rekomendasi += array_sum($angka) / count($angka);
+                    }
+                }
+            }
+            if ($rekomendasi > 100) $rekomendasi = 100;
+
+            // Juri sebagai tim penilai boleh menyesuaikan maksimal +/- 10 dari rekomendasi.
+            $nilai_a01 = (float) $request->nilai_a01;
+            $batasBawah = $rekomendasi - 10;
+            $batasAtas  = $rekomendasi + 10;
+            if ($nilai_a01 < $batasBawah) $nilai_a01 = $batasBawah;
+            if ($nilai_a01 > $batasAtas)  $nilai_a01 = $batasAtas;
+            if ($nilai_a01 > 100) $nilai_a01 = 100; // tetap dibatasi skala maksimal 100
+            if ($nilai_a01 < 0)   $nilai_a01 = 0;   // pengaman agar tidak negatif
+
             Penilaian::updateOrCreate(
                 ['juri_id' => Auth::id(), 'pendaftaran_id' => $pendaftaran->id, 'kriteria_id' => $kriterias['A01']],
-                ['nilai_input' => $request->nilai_a01]
+                ['nilai_input' => $nilai_a01]
             );
         }
 
@@ -144,8 +172,12 @@ class PenilaianController extends Controller
         }
 
         // 3. Bahasa Inggris (BI) Video (A03) & 6. Bahasa Inggris (BI) Lisan (F03)
+        // Rubrik B. Inggris tidak memiliki kolom bobot (hanya rentang skor per field),
+        // sehingga setiap field diberi bobot setara. Memakai rata-rata (avg) agar
+        // hasilnya tetap pada skala 60-100, konsisten dengan kriteria lain.
+        // (Sebelumnya memakai sum() yang membuat nilai membengkak bila field > 1.)
         $sum_inggris = \App\Models\PenilaianBahasaInggris::where('juri_id', Auth::id())
-            ->where('pendaftaran_id', $pendaftaran->id)->sum('nilai_input');
+            ->where('pendaftaran_id', $pendaftaran->id)->avg('nilai_input') ?? 0;
 
         if (isset($kriterias['A03'])) {
             Penilaian::updateOrCreate(
