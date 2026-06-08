@@ -30,7 +30,7 @@ class Mahasiswa extends Model
             '71' => 'Akuntansi',
             '72' => 'Manajemen',
             '61' => 'Ilmu Hukum',
-            // Tambahkan kode lainnya sesuai kebutuhan
+            // nim belum lengkap
         ];
     }
 

@@ -76,3 +76,45 @@ git push origin master
 - test cek kembali skema perhitunga CU portofolio apakah sudah sesuai
 - besok testing semua penilaian dari juri input 3, 3 nya
 - di tampilan perhitungan Portofolio CU masih memunculkan rekomendasi 60 (di ganti)
+- Sudah done mungkin tinggal penyesuaiann
+
+# perubahan keperluan deploy
+
+- app/Http/Controllers/Admin/PerhitunganController.php, cari dan hapus blok ini di awal method proses():
+   
+    try {
+            \Illuminate\Support\Facades\Schema::table('hasil_penilaian', function ($table) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('hasil_penilaian', 'nilai_sementara')) {
+                    $table->decimal('nilai_sementara', 8, 4)->nullable();
+                }
+            });
+        } catch (\Exception $e) {
+            // ignore
+        }
+
+- Penambahan bosostrap/app.php
+  
+  <?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        //
+    })->create();
+        //
+    ->withMiddleware(function (Middleware $middleware) {
+    $middleware->trustProxies(at: '*'); // ← tambahkan ini
+})
+
+

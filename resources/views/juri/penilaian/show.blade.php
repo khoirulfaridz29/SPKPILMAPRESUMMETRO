@@ -154,12 +154,12 @@
                             <div class="alert alert-info small mb-4">Validasi skor rekomendasi capaian unggulan yang telah diverifikasi oleh admin.</div>
 
                             <div class="mb-4">
-                                <label class="form-label fw-bold">Skor Akhir Capaian Unggulan Berkas (A01) - Skala 60-100</label>
+                                <label class="form-label fw-bold">Skor Akhir Capaian Unggulan Berkas (A01) </label>
                                 <div class="input-group">
                                     <input type="number" name="nilai_a01" class="form-control form-control-lg" value="{{ $existing_a01 ?? ($total_rekomendasi < 60 ? 60 : $total_rekomendasi) }}" min="60" max="100" required>
                                     <span class="input-group-text bg-light fw-semibold">/ 100</span>
                                 </div>
-                                <div class="form-text">Rekomendasi skor berdasarkan sertifikat tervalidasi admin: <strong class="text-success">{{ $total_rekomendasi }}</strong>. Silakan sesuaikan atau konfirmasi (Skala: 60 - 100).</div>
+                                <div class="form-text">Rekomendasi skor berdasarkan sertifikat tervalidasi admin: <strong class="text-success">{{ $total_rekomendasi }}</strong>. Silakan sesuaikan atau konfirmasi (Bisa Tambah/kurang MAX 10).</div>
                             </div>
                         </div>
 

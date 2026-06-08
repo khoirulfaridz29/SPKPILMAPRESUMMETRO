@@ -57,15 +57,7 @@ class PerhitunganController extends Controller
 
     public function proses()
     {
-        try {
-            \Illuminate\Support\Facades\Schema::table('hasil_penilaian', function ($table) {
-                if (!\Illuminate\Support\Facades\Schema::hasColumn('hasil_penilaian', 'nilai_sementara')) {
-                    $table->decimal('nilai_sementara', 8, 4)->nullable();
-                }
-            });
-        } catch (\Exception $e) {
-            // ignore
-        }
+       
 
         $kriterias = KriteriaPenilaian::all();
         $kriteriasMap = $kriterias->keyBy('kode_kriteria');
@@ -127,7 +119,7 @@ class PerhitunganController extends Controller
                         ->where('pendaftaran_id', $pendaftaran->id)
                         ->where('kriteria_id', $f03Id)
                         ->value('nilai_input');
-                    
+
                     if ($existingF03Val !== null) {
                         Penilaian::updateOrCreate(
                             [
@@ -217,7 +209,7 @@ class PerhitunganController extends Controller
                 [
                     'skor_awal' => $nsf, // Menyimpan NSF
                     'skor_final' => $ncf, // Menyimpan NCF
-                    'nilai_total' => $nilaiTotal, 
+                    'nilai_total' => $nilaiTotal,
                     'nilai_sementara' => $nilaiSementara
                 ]
             );
@@ -335,7 +327,7 @@ class PerhitunganController extends Controller
         $sheet1->setCellValue('D1', 'TIPE FAKTOR');
         $sheet1->setCellValue('E1', 'TARGET');
         $sheet1->setCellValue('F1', 'BOBOT');
-        
+
         $row = 2;
         foreach ($kriterias as $k) {
             $sheet1->setCellValue('A' . $row, $k->kode_kriteria);
@@ -364,7 +356,7 @@ class PerhitunganController extends Controller
         $sheet2->setCellValue('D1', 'PROGRAM STUDI');
         $sheet2->setCellValue('E1', 'IPK');
         $sheet2->setCellValue('F1', 'RIWAYAT PILMAPRES');
-        
+
         $row = 2;
         foreach ($hasilList as $i => $h) {
             $m = $h->pendaftaran->mahasiswa;
@@ -397,18 +389,18 @@ class PerhitunganController extends Controller
         $sheet3->setCellValue('G1', 'F01 (CU Wawancara)');
         $sheet3->setCellValue('H1', 'F02 (GK Presentasi)');
         $sheet3->setCellValue('I1', 'F03 (BI Lisan)');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $pendaftaran = $h->pendaftaran;
             $penilaians = $pendaftaran->penilaian;
-            
+
             foreach ($juries as $jIndex => $juri) {
                 $getScore = function($kode) use ($penilaians, $juri, $kriteriasMap) {
                     $kId = $kriteriasMap[$kode] ?? 0;
                     return $penilaians->where('juri_id', $juri->id)->where('kriteria_id', $kId)->first()->nilai_input ?? 60;
                 };
-                
+
                 $sheet3->setCellValue('A' . $row, $pendaftaran->mahasiswa->user->nama_lengkap);
                 $sheet3->setCellValue('B' . $row, $pendaftaran->mahasiswa->nim);
                 $sheet3->setCellValue('C' . $row, 'Juri #' . ($jIndex + 1) . ' - ' . $juri->nama_lengkap);
@@ -418,7 +410,7 @@ class PerhitunganController extends Controller
                 $sheet3->setCellValue('G' . $row, number_format($getScore('F01'), 2));
                 $sheet3->setCellValue('H' . $row, number_format($getScore('F02'), 2));
                 $sheet3->setCellValue('I' . $row, number_format($getScore('F03'), 2));
-                
+
                 $styleData($sheet3, "A$row:I$row");
                 $sheet3->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
                 $sheet3->getStyle("C$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
@@ -442,7 +434,7 @@ class PerhitunganController extends Controller
         $sheet4->setCellValue('E1', 'WEIGHTED A02 (AVG*35%)');
         $sheet4->setCellValue('F1', 'AVG A03');
         $sheet4->setCellValue('G1', 'WEIGHTED A03 (AVG*30%)');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $penilaians = $h->pendaftaran->penilaian;
@@ -454,7 +446,7 @@ class PerhitunganController extends Controller
             $avgA01 = $getAvg('A01');
             $avgA02 = $getAvg('A02');
             $avgA03 = $getAvg('A03');
-            
+
             $sheet4->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet4->setCellValue('B' . $row, number_format($avgA01, 4));
             $sheet4->setCellValue('C' . $row, number_format($weighted('A01', $avgA01), 4));
@@ -483,7 +475,7 @@ class PerhitunganController extends Controller
         $sheet5->setCellValue('E1', 'WEIGHTED F02 (AVG*35%)');
         $sheet5->setCellValue('F1', 'AVG F03');
         $sheet5->setCellValue('G1', 'WEIGHTED F03 (AVG*30%)');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $penilaians = $h->pendaftaran->penilaian;
@@ -495,7 +487,7 @@ class PerhitunganController extends Controller
             $avgF01 = $getAvg('F01');
             $avgF02 = $getAvg('F02');
             $avgF03 = $getAvg('F03');
-            
+
             $sheet5->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet5->setCellValue('B' . $row, number_format($avgF01, 4));
             $sheet5->setCellValue('C' . $row, number_format($weighted('F01', $avgF01), 4));
@@ -524,7 +516,7 @@ class PerhitunganController extends Controller
         $sheet6->setCellValue('E1', 'F01');
         $sheet6->setCellValue('F1', 'F02');
         $sheet6->setCellValue('G1', 'F03');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $penilaians = $h->pendaftaran->penilaian;
@@ -533,7 +525,7 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            
+
             $sheet6->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet6->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))));
             $sheet6->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))));
@@ -562,7 +554,7 @@ class PerhitunganController extends Controller
         $sheet7->setCellValue('E1', 'GAP F01');
         $sheet7->setCellValue('F1', 'GAP F02');
         $sheet7->setCellValue('G1', 'GAP F03');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $penilaians = $h->pendaftaran->penilaian;
@@ -571,7 +563,7 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            
+
             $sheet7->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet7->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))) - 10);
             $sheet7->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))) - 10);
@@ -603,7 +595,7 @@ class PerhitunganController extends Controller
         $sheet8->setCellValue('H1', 'NSF (SECONDARY AVG)');
         $sheet8->setCellValue('I1', 'NCF (CORE AVG)');
         $sheet8->setCellValue('J1', 'NILAI AKHIR (PROFILE MATCHING)');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $penilaians = $h->pendaftaran->penilaian;
@@ -612,24 +604,24 @@ class PerhitunganController extends Controller
                 $scores = $penilaians->where('kriteria_id', $kId)->pluck('nilai_input');
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
-            
+
             $a01 = $this->convertToScale10($weighted('A01', $getAvg('A01')));
             $a02 = $this->convertToScale10($weighted('A02', $getAvg('A02')));
             $a03 = $this->convertToScale10($weighted('A03', $getAvg('A03')));
             $f01 = $this->convertToScale10($weighted('F01', $getAvg('F01')));
             $f02 = $this->convertToScale10($weighted('F02', $getAvg('F02')));
             $f03 = $this->convertToScale10($weighted('F03', $getAvg('F03')));
-            
+
             $wA01 = $this->getGapWeight($a01 - 10);
             $wA02 = $this->getGapWeight($a02 - 10);
             $wA03 = $this->getGapWeight($a03 - 10);
             $wF01 = $this->getGapWeight($f01 - 10);
             $wF02 = $this->getGapWeight($f02 - 10);
             $wF03 = $this->getGapWeight($f03 - 10);
-            
+
             $nsf = ($wA01 + $wA02 + $wA03) / 3.0;
             $ncf = ($wF01 + $wF02 + $wF03) / 3.0;
-            
+
             $sheet8->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
             $sheet8->setCellValue('B' . $row, number_format($wA01, 1));
             $sheet8->setCellValue('C' . $row, number_format($wA02, 1));
@@ -663,7 +655,7 @@ class PerhitunganController extends Controller
         $sheet9->setCellValue('G1', 'SKOR NCF (CORE)');
         $sheet9->setCellValue('H1', 'NILAI AKHIR (SPK)');
         $sheet9->setCellValue('I1', 'STATUS JUARA');
-        
+
         $row = 2;
         foreach ($hasilList as $h) {
             $sheet9->setCellValue('A' . $row, $h->ranking);
