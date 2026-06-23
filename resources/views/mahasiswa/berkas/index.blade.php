@@ -109,7 +109,7 @@
                                 <td style="padding:0.7rem 0 0.7rem 0.75rem;font-weight:600">{{ $b->nama_berkas }}</td>
                                 <td style="padding:0.7rem 0;text-align:center"><span class="badge bg-secondary">{{ $b->status_validasi }}</span></td>
                                 <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
-                                    <a href="{{ asset('storage/' . $b->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
+                                    <a href="{{ route('mahasiswa.berkas.lihat', $b) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
                                     @if(!$pendaftaran->is_submitted)
                                     <form action="{{ route('mahasiswa.berkas.destroy', $b) }}" method="POST" class="d-inline">
                                         @csrf @method('DELETE')
@@ -239,7 +239,7 @@
                         <h5 class="fw-bold">{{ $rubrikNaskahLabel }} Tersimpan</h5>
                         <p class="text-muted">Status Validasi: <span class="badge bg-secondary">{{ $gk->status_validasi }}</span></p>
                         <div class="d-flex justify-content-center gap-2 mt-4">
-                            <a href="{{ asset('storage/' . $gk->file_path) }}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-eye me-2"></i> Lihat File</a>
+                            <a href="{{ route('mahasiswa.berkas.lihat', $gk) }}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-eye me-2"></i> Lihat File</a>
                             @if(!$pendaftaran->is_submitted)
                             <form action="{{ route('mahasiswa.berkas.destroy', $gk) }}" method="POST">
                                 @csrf @method('DELETE')
@@ -285,7 +285,7 @@
                         <h5 class="fw-bold">Video Bahasa Inggris Tersimpan</h5>
                         <p class="text-muted">Status Validasi: <span class="badge bg-secondary">{{ $video->status_validasi }}</span></p>
                         <div class="d-flex justify-content-center gap-2 mt-4">
-                            <a href="{{ asset('storage/' . $video->file_path) }}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-play me-2"></i> Putar/Unduh Video</a>
+                            <a href="{{ route('mahasiswa.berkas.lihat', $video) }}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-play me-2"></i> Putar/Unduh Video</a>
                             @if(!$pendaftaran->is_submitted)
                             <form action="{{ route('mahasiswa.berkas.destroy', $video) }}" method="POST">
                                 @csrf @method('DELETE')

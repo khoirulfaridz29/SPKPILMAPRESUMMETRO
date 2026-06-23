@@ -8,7 +8,9 @@ use App\Models\Pendaftaran;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class BerkasController extends Controller
 {
@@ -16,7 +18,7 @@ class BerkasController extends Controller
 
     private function getPendaftaran()
     {
-        $mahasiswa = Mahasiswa::where('user_id', Auth::id())->first();
+        $mahasiswa = Mahasiswa::with('jenjang')->where('user_id', Auth::id())->first();
         return $mahasiswa ? Pendaftaran::where('mahasiswa_id', $mahasiswa->id)->first() : null;
     }
 
@@ -32,8 +34,8 @@ class BerkasController extends Controller
         $rubriks = \App\Models\RubrikCapaianUnggulan::all();
 
         // Dynamic rubrik info based on student's jenjang (keyword matching from KRITERIA PENILAIAN)
-        $mahasiswa = \App\Models\Mahasiswa::where('user_id', Auth::id())->first();
-        $studentJenjangId = $mahasiswa->jenjang_id ?? 1;
+        $pendaftaran->load('mahasiswa.jenjang');
+        $studentJenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
         $kriterias = \App\Models\KriteriaPenilaian::where('jenjang_id', $studentJenjangId)->get();
         $kriteriaNames = $kriterias->pluck('nama_kriteria')->map(fn($n) => strtolower($n));
 
@@ -57,8 +59,13 @@ class BerkasController extends Controller
 
     public function store(Request $request)
     {
+        $validNamaBerkas = [
+            'KTP', 'KTM', 'Transkrip Nilai', 'Surat Pengantar Fakultas',
+            'Naskah Gagasan Kreatif', 'Naskah Produk Inovatif', 'Video Bahasa Inggris',
+        ];
+
         $rules = [
-            'nama_berkas' => 'required|string|max:255',
+            'nama_berkas' => ['required', Rule::in($validNamaBerkas)],
         ];
 
         if ($request->nama_berkas === 'Video Bahasa Inggris') {
@@ -72,14 +79,25 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         if (!$pendaftaran) abort(403);
 
+        if (BerkasPendaftaran::where('pendaftaran_id', $pendaftaran->id)->count() >= 10) {
+            return back()->with('error', 'Batas maksimal unggahan berkas telah tercapai.')->withInput();
+        }
+
         $path = $request->file('file')->store('berkas/' . $pendaftaran->id, 'public');
 
-        BerkasPendaftaran::create([
-            'pendaftaran_id'  => $pendaftaran->id,
-            'nama_berkas'     => $request->nama_berkas,
-            'file_path'       => $path,
-            'status_validasi' => 'Pending',
-        ]);
+        try {
+            DB::transaction(function () use ($request, $pendaftaran, $path) {
+                BerkasPendaftaran::create([
+                    'pendaftaran_id'  => $pendaftaran->id,
+                    'nama_berkas'     => $request->nama_berkas,
+                    'file_path'       => $path,
+                    'status_validasi' => 'Pending',
+                ]);
+            });
+        } catch (\Exception $e) {
+            Storage::disk('public')->delete($path);
+            return back()->with('error', 'Gagal menyimpan berkas. Silakan coba lagi.')->withInput();
+        }
 
         $this->sendNotification(Auth::id(), 'Berkas "' . $request->nama_berkas . '" berhasil diunggah.', 'success');
         $this->notifyAllAdmins('Berkas baru diunggah oleh ' . Auth::user()->nama_lengkap . ': ' . $request->nama_berkas, 'info');
@@ -128,6 +146,17 @@ class BerkasController extends Controller
         ]);
 
         return redirect()->route('mahasiswa.berkas.index', ['tab' => 'portofolio'])->with('success', 'Portofolio CU berhasil ditambahkan.');
+    }
+
+    public function lihat(BerkasPendaftaran $berkas)
+    {
+        $pendaftaran = $this->getPendaftaran();
+        abort_if($berkas->pendaftaran_id !== $pendaftaran?->id, 403);
+
+        $path = Storage::disk('public')->path($berkas->file_path);
+        abort_if(!file_exists($path), 404);
+
+        return response()->file($path);
     }
 
     public function destroy(BerkasPendaftaran $berkas)

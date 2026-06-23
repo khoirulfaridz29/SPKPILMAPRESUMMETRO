@@ -4,6 +4,7 @@ namespace App\Http\Controllers\WR3;
 
 use App\Http\Controllers\Controller;
 use App\Models\HasilPenilaian;
+use Illuminate\Support\Facades\Auth;
 
 class RekomendaciController extends Controller
 {
@@ -21,13 +22,22 @@ class RekomendaciController extends Controller
 
     public function validasi()
     {
-        HasilPenilaian::where('validasi_wr3', 'Pending')
+        $updatedCount = HasilPenilaian::where('validasi_wr3', 'Pending')
             ->update(['validasi_wr3' => 'Divalidasi']);
 
         // Update status_seleksi peserta menjadi Selesai
-        HasilPenilaian::with('pendaftaran')->get()->each(function ($hasil) {
+        $allUpdated = HasilPenilaian::with('pendaftaran')->get();
+        $allUpdated->each(function ($hasil) {
             $hasil->pendaftaran->update(['status_seleksi' => 'Selesai']);
         });
+
+        activity()->causedBy(Auth::user())
+            ->withProperties([
+                'records_validated' => $updatedCount,
+                'total_records' => $allUpdated->count(),
+            ])
+            ->event('updated')
+            ->log('WR3 validasi akhir: ' . $updatedCount . ' hasil direkomendasi');
 
         $this->notifyAllRole('mahasiswa', 'Hasil akhir PILMAPRES telah divalidasi oleh WR3. Silakan cek status pendaftaran Anda.', 'info');
 

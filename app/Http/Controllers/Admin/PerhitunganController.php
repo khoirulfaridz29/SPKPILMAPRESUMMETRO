@@ -10,6 +10,7 @@ use App\Models\HasilPenilaian;
 use App\Models\PortofolioCu;
 use App\Models\PenugasanJuri;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PerhitunganController extends Controller
 {
@@ -170,7 +171,6 @@ class PerhitunganController extends Controller
 
         // --- 1. OTOMATISASI DAN VERIFIKASI NILAI KRITERIA A01 ---
         foreach ($pesertaLolos as $pendaftaran) {
-            $pendaftaran->load('mahasiswa');
             $jenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
             $kriteriasMap = ($kriteriasByJenjang->get($jenjangId, collect()) ?: $kriteriasByJenjang->get(1, collect()))->keyBy('kode_kriteria');
             if (!isset($kriteriasMap['A01'])) continue;
@@ -186,9 +186,18 @@ class PerhitunganController extends Controller
             }
         }
 
+        // Build lookup for F03 values to avoid N+1 queries
+        $f03ValuesByJuriPendaftaran = [];
+        foreach ($allPenilaians as $pid => $penilaians) {
+            foreach ($penilaians as $pn) {
+                if ($pn->kriteria && $pn->kriteria->kode_kriteria === 'F03') {
+                    $f03ValuesByJuriPendaftaran[$pn->juri_id . '_' . $pid] = $pn->nilai_input;
+                }
+            }
+        }
+
         // Otomatisasi A03 (BI Video) disamakan dengan F03 jika kosong
         foreach ($pesertaLolos as $pendaftaran) {
-            $pendaftaran->load('mahasiswa');
             $jenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
             $kriteriasMap = ($kriteriasByJenjang->get($jenjangId, collect()) ?: $kriteriasByJenjang->get(1, collect()))->keyBy('kode_kriteria');
             if (!isset($kriteriasMap['A03']) || !isset($kriteriasMap['F03'])) continue;
@@ -196,10 +205,7 @@ class PerhitunganController extends Controller
             $f03Id = $kriteriasMap['F03']->id;
             $penugasans = $allPenugasans->get($pendaftaran->id, collect());
             foreach ($penugasans as $penugasan) {
-                    $existingF03Val = Penilaian::where('juri_id', $penugasan->juri_id)
-                        ->where('pendaftaran_id', $pendaftaran->id)
-                        ->where('kriteria_id', $f03Id)
-                        ->value('nilai_input');
+                    $existingF03Val = $f03ValuesByJuriPendaftaran[$penugasan->juri_id . '_' . $pendaftaran->id] ?? null;
                     if ($existingF03Val !== null) {
                         Penilaian::updateOrCreate(
                             ['juri_id' => $penugasan->juri_id, 'pendaftaran_id' => $pendaftaran->id, 'kriteria_id' => $a03Id],
@@ -304,6 +310,18 @@ class PerhitunganController extends Controller
             }
         }
 
+        $totalPeserta = HasilPenilaian::count();
+        $totalJenjang = $hasilByJenjang->count();
+
+        activity()->causedBy(Auth::user())
+            ->withProperties([
+                'total_peserta' => $totalPeserta,
+                'total_jenjang' => $totalJenjang,
+                'filter_jenjang_id' => $request->jenjang_id,
+            ])
+            ->event('updated')
+            ->log('Menjalankan perhitungan GAP: ' . $totalPeserta . ' peserta, ' . $totalJenjang . ' jenjang');
+
         $this->notifyAllRole('wr3', 'Perhitungan nilai PILMAPRES telah selesai. Silakan lakukan validasi akhir.', 'info');
         $this->notifyAllRole('mahasiswa', 'Proses penilaian telah selesai. Hasil akhir akan segera diumumkan.', 'info');
 
@@ -313,6 +331,19 @@ class PerhitunganController extends Controller
 
     public function resetPerhitungan()
     {
+        $totalBefore = HasilPenilaian::count();
+
+        \Illuminate\Support\Facades\Log::warning('HasilPenilaian truncated', [
+            'user_id' => auth()->id(),
+            'username' => auth()->user()?->username,
+            'at' => now()->toDateTimeString(),
+        ]);
+
+        activity()->causedBy(Auth::user())
+            ->withProperties(['deleted_count' => $totalBefore])
+            ->event('deleted')
+            ->log('Reset perhitungan GAP: ' . $totalBefore . ' hasil dihapus');
+
         HasilPenilaian::truncate();
 
         return redirect()->route('admin.perhitungan.index')

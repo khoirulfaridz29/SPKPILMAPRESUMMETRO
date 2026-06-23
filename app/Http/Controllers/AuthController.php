@@ -64,7 +64,7 @@ class AuthController extends Controller
         $request->validate([
             'nama_lengkap' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users',
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()],
             'nim' => 'required|string|max:50|unique:mahasiswa',
             'program_studi' => 'required|string|max:255',
             'jenjang_id' => 'required|exists:jenjang,id',
@@ -79,12 +79,22 @@ class AuthController extends Controller
         ]);
 
         // Buat Profil Mahasiswa
-        Mahasiswa::create([
+        $mhs = Mahasiswa::create([
             'user_id' => $user->id,
             'nim' => $request->nim,
             'program_studi' => $request->program_studi,
             'jenjang_id' => $request->jenjang_id,
         ]);
+
+        activity()->causedBy($user)
+            ->performedOn($mhs)
+            ->withProperties([
+                'username' => $user->username,
+                'nim' => $mhs->nim,
+                'program_studi' => $mhs->program_studi,
+            ])
+            ->event('created')
+            ->log('Registrasi mahasiswa baru: ' . $mhs->nim);
 
         Auth::login($user);
 
@@ -106,7 +116,7 @@ class AuthController extends Controller
         $user = User::where('username', $request->username)->first();
 
         if (!$user) {
-            return back()->withErrors(['username' => 'Username not found.'])->onlyInput('username');
+            return back()->with('success', 'Jika username terdaftar, permintaan reset password telah dikirimkan ke admin.');
         }
 
         $this->notifyAllAdmins(

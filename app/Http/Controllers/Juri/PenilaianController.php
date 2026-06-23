@@ -274,22 +274,26 @@ class PenilaianController extends Controller
             'F03' => 'Lisan BI',
         ];
 
-        // Load all rubrik per jenjang
+        // Load all rubrik per jenjang (bulk: only 4 queries total, regardless of jenjang count)
         $jenjangIds = $grouped->keys()->filter(fn($id) => $id > 0);
         $rubrikLabels = [];
+        $rubrikNaskahAll = \App\Models\RubrikNaskahGk::whereIn('jenjang_id', $jenjangIds)
+            ->get(['id','jenjang_id','aspek_penilaian','kriteria_penilaian','bobot'])->groupBy('jenjang_id');
+        $rubrikPresentasiAll = \App\Models\RubrikPresentasiGk::whereIn('jenjang_id', $jenjangIds)
+            ->get(['id','jenjang_id','aspek_penilaian','kriteria_penilaian','bobot'])->groupBy('jenjang_id');
+        $rubrikWawancaraAll = \App\Models\RubrikWawancaraCu::whereIn('jenjang_id', $jenjangIds)
+            ->get(['id','jenjang_id','kriteria_penilaian','bobot'])->groupBy('jenjang_id');
+        $rubrikInggrisAll = \App\Models\RubrikBahasaInggris::whereIn('jenjang_id', $jenjangIds)
+            ->get(['id','jenjang_id','field'])->groupBy('jenjang_id');
         $rubrikNaskah = [];
         $rubrikPresentasi = [];
         $rubrikWawancara = [];
         $rubrikInggris = [];
         foreach ($jenjangIds as $jId) {
-            $rubrikNaskah[$jId] = \App\Models\RubrikNaskahGk::where('jenjang_id', $jId)
-                ->get(['id','aspek_penilaian','kriteria_penilaian','bobot'])->keyBy('id');
-            $rubrikPresentasi[$jId] = \App\Models\RubrikPresentasiGk::where('jenjang_id', $jId)
-                ->get(['id','aspek_penilaian','kriteria_penilaian','bobot'])->keyBy('id');
-            $rubrikWawancara[$jId] = \App\Models\RubrikWawancaraCu::where('jenjang_id', $jId)
-                ->get(['id','kriteria_penilaian','bobot'])->keyBy('id');
-            $rubrikInggris[$jId] = \App\Models\RubrikBahasaInggris::where('jenjang_id', $jId)
-                ->get(['id','field'])->keyBy('id');
+            $rubrikNaskah[$jId] = ($rubrikNaskahAll[$jId] ?? collect())->keyBy('id');
+            $rubrikPresentasi[$jId] = ($rubrikPresentasiAll[$jId] ?? collect())->keyBy('id');
+            $rubrikWawancara[$jId] = ($rubrikWawancaraAll[$jId] ?? collect())->keyBy('id');
+            $rubrikInggris[$jId] = ($rubrikInggrisAll[$jId] ?? collect())->keyBy('id');
         }
 
         // Load all detail penilaian for this juri

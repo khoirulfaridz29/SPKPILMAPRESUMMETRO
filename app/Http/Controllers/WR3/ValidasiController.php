@@ -21,6 +21,7 @@ class ValidasiController extends Controller
 
     public function approve(RekapTahap1 $rekap)
     {
+        $oldStatus = $rekap->status_laporan;
         $rekap->update([
             'status_laporan'   => 'Divalidasi',
             'divalidasi_oleh'  => Auth::id(),
@@ -32,6 +33,16 @@ class ValidasiController extends Controller
             'status_seleksi' => 'Lolos Tahap 1',
             'status_berkas'  => 'Lengkap',
         ]);
+
+        activity()->causedBy(Auth::user())
+            ->performedOn($rekap)
+            ->withProperties([
+                'mahasiswa_nim' => $pendaftaran->mahasiswa->nim,
+                'old_status' => $oldStatus,
+                'new_status' => 'Divalidasi',
+            ])
+            ->event('updated')
+            ->log('WR3 validasi: ' . $pendaftaran->mahasiswa->nim . ' -> Divalidasi');
 
         // Notify mahasiswa
         $this->sendNotification($pendaftaran->mahasiswa->user_id, 'Selamat! Berkas Anda telah divalidasi WR3 dan dinyatakan LOLOS seleksi Tahap I.', 'success');

@@ -14,7 +14,7 @@ class PendaftaranController extends Controller
 
     private function getMahasiswa()
     {
-        return Mahasiswa::where('user_id', Auth::id())->first();
+        return Mahasiswa::with('user')->where('user_id', Auth::id())->first();
     }
 
     private function isPendaftaranOpen()
@@ -98,7 +98,7 @@ class PendaftaranController extends Controller
         $mahasiswa = $this->getMahasiswa();
         if (!$mahasiswa) abort(403);
 
-        $pendaftaran = Pendaftaran::where('mahasiswa_id', $mahasiswa->id)->first();
+        $pendaftaran = Pendaftaran::with('mahasiswa.user')->where('mahasiswa_id', $mahasiswa->id)->first();
         if (!$pendaftaran) abort(404);
 
         $pendaftaran->update(['is_submitted' => true]);

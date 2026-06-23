@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             JenjangSeeder::class,
             TipeFaktorSeeder::class,
+            ProgramStudiSeeder::class,
         ]);
     }
 }

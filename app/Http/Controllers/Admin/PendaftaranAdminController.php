@@ -8,6 +8,7 @@ use App\Models\BerkasPendaftaran;
 use App\Models\RekapTahap1;
 use App\Models\Jenjang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PendaftaranAdminController extends Controller
 {
@@ -56,18 +57,31 @@ class PendaftaranAdminController extends Controller
 
     public function verifikasi(Pendaftaran $pendaftaran)
     {
+        $oldStatus = $pendaftaran->status_seleksi;
         $pendaftaran->update([
             'status_berkas' => 'Lengkap',
             'status_seleksi' => 'Lolos Tahap 1',
         ]);
         
-        // Buat rekap tahap 1 jika belum ada
+        $rekapCreated = false;
         if (!$pendaftaran->rekap) {
             RekapTahap1::create([
                 'pendaftaran_id' => $pendaftaran->id,
                 'status_laporan' => 'Pending',
             ]);
+            $rekapCreated = true;
         }
+
+        activity()->causedBy(Auth::user())
+            ->performedOn($pendaftaran)
+            ->withProperties([
+                'mahasiswa_nim' => $pendaftaran->mahasiswa->nim,
+                'old_status' => $oldStatus,
+                'new_status' => 'Lolos Tahap 1',
+                'rekap_created' => $rekapCreated,
+            ])
+            ->event('updated')
+            ->log('Verifikasi pendaftaran: ' . $pendaftaran->mahasiswa->nim . ' -> Lolos Tahap 1');
 
         $this->sendNotification($pendaftaran->mahasiswa->user_id, 'Berkas pendaftaran Anda telah dinyatakan LENGKAP dan Anda lolos ke Tahap I.', 'success');
 
@@ -76,10 +90,21 @@ class PendaftaranAdminController extends Controller
 
     public function tolak(Pendaftaran $pendaftaran)
     {
+        $oldStatus = $pendaftaran->status_seleksi;
         $pendaftaran->update([
             'status_berkas'  => 'Belum Lengkap',
             'status_seleksi' => 'Tidak Lolos',
         ]);
+
+        activity()->causedBy(Auth::user())
+            ->performedOn($pendaftaran)
+            ->withProperties([
+                'mahasiswa_nim' => $pendaftaran->mahasiswa->nim,
+                'old_status' => $oldStatus,
+                'new_status' => 'Tidak Lolos',
+            ])
+            ->event('updated')
+            ->log('Tolak pendaftaran: ' . $pendaftaran->mahasiswa->nim . ' -> Tidak Lolos');
 
         $this->sendNotification($pendaftaran->mahasiswa->user_id, 'Berkas pendaftaran Anda dinyatakan TIDAK LENGKAP / TIDAK LOLOS.', 'danger');
 
@@ -89,7 +114,18 @@ class PendaftaranAdminController extends Controller
     public function validasiBerkas(BerkasPendaftaran $berkas, Request $request)
     {
         $request->validate(['status' => 'required|in:Valid,Tidak Valid']);
+        $oldStatus = $berkas->status_validasi;
         $berkas->update(['status_validasi' => $request->status]);
+
+        activity()->causedBy(Auth::user())
+            ->performedOn($berkas)
+            ->withProperties([
+                'berkas_nama' => $berkas->nama_berkas,
+                'old_status' => $oldStatus,
+                'new_status' => $request->status,
+            ])
+            ->event('updated')
+            ->log('Validasi berkas: ' . $berkas->nama_berkas . ' -> ' . $request->status);
 
         $this->sendNotification($berkas->pendaftaran->mahasiswa->user_id, 'Dokumen "' . $berkas->nama_berkas . '" Anda dinyatakan ' . strtoupper($request->status) . '.', $request->status === 'Valid' ? 'success' : 'danger');
 
@@ -99,7 +135,18 @@ class PendaftaranAdminController extends Controller
     public function validasiPortofolio(\App\Models\PortofolioCu $portofolio, Request $request)
     {
         $request->validate(['status' => 'required|in:Valid,Tidak Valid']);
+        $oldStatus = $portofolio->status_validasi;
         $portofolio->update(['status_validasi' => $request->status]);
+
+        activity()->causedBy(Auth::user())
+            ->performedOn($portofolio)
+            ->withProperties([
+                'prestasi' => $portofolio->nama_prestasi,
+                'old_status' => $oldStatus,
+                'new_status' => $request->status,
+            ])
+            ->event('updated')
+            ->log('Validasi portofolio: ' . $portofolio->nama_prestasi . ' -> ' . $request->status);
 
         $this->sendNotification($portofolio->pendaftaran->mahasiswa->user_id, 'Portofolio CU "' . $portofolio->nama_prestasi . '" Anda dinyatakan ' . strtoupper($request->status) . '.', $request->status === 'Valid' ? 'success' : 'danger');
 

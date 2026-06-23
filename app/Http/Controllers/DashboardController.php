@@ -35,10 +35,14 @@ class DashboardController extends Controller
                 ->where('role', 'mahasiswa')
                 ->with('mahasiswa.jenjang')
                 ->orderBy('nama_lengkap')
-                ->get()
-                ->map(function ($user) {
+                ->get();
+
+            $mhsIds = $mahasiswaList->pluck('mahasiswa.id')->filter();
+            $pendaftaranByMhs = Pendaftaran::whereIn('mahasiswa_id', $mhsIds)->get()->keyBy('mahasiswa_id');
+
+            $mahasiswaList = $mahasiswaList->map(function ($user) use ($pendaftaranByMhs) {
                     $mhs = $user->mahasiswa;
-                    $pd = $mhs ? Pendaftaran::query()->where('mahasiswa_id', $mhs->id)->first() : null;
+                    $pd = $pendaftaranByMhs->get($mhs?->id);
                     $status = !$pd ? 'Belum Daftar' : ($pd->status_seleksi === 'Lolos Tahap 1' ? 'Lolos T1' : $pd->status_berkas);
                     return (object) [
                         'nama'   => $user->nama_lengkap,
@@ -69,22 +73,21 @@ class DashboardController extends Controller
                 ->where('juri_id', $user->id)
                 ->latest()
                 ->take(10)
-                ->get()
-                ->map(function ($p) use ($user) {
+                ->get();
+
+            $pendaftaranIds = $penugasanList->pluck('pendaftaran_id')->filter();
+            $kriteriaCountByJenjang = \App\Models\KriteriaPenilaian::selectRaw('jenjang_id, COUNT(*) as total')
+                ->groupBy('jenjang_id')->pluck('total', 'jenjang_id');
+            $scoredByPendaftaran = \App\Models\Penilaian::where('juri_id', $user->id)
+                ->whereIn('pendaftaran_id', $pendaftaranIds)
+                ->selectRaw('pendaftaran_id, COUNT(DISTINCT kriteria_id) as scored')
+                ->groupBy('pendaftaran_id')->pluck('scored', 'pendaftaran_id');
+
+            $penugasanList = $penugasanList->map(function ($p) use ($kriteriaCountByJenjang, $scoredByPendaftaran) {
                     $m = $p->pendaftaran?->mahasiswa;
                     $jenjangId = $m?->jenjang_id;
-                    $totalKriteria = $jenjangId
-                        ? \App\Models\KriteriaPenilaian::where('jenjang_id', $jenjangId)->count()
-                        : 0;
-                    $scoredKriteria = $totalKriteria > 0
-                        ? \App\Models\Penilaian::where('juri_id', $user->id)
-                            ->where('pendaftaran_id', $p->pendaftaran_id)
-                            ->whereIn('kriteria_id', function ($q) use ($jenjangId) {
-                                $q->select('id')->from('kriteria_penilaian')->where('jenjang_id', $jenjangId);
-                            })
-                            ->distinct('kriteria_id')
-                            ->count('kriteria_id')
-                        : 0;
+                    $totalKriteria = $kriteriaCountByJenjang->get($jenjangId, 0);
+                    $scoredKriteria = $scoredByPendaftaran->get($p->pendaftaran_id, 0);
                     return (object) [
                         'id'       => $p->pendaftaran_id,
                         'nama'     => $m?->user?->nama_lengkap ?? '-',

@@ -22,17 +22,7 @@ class Mahasiswa extends Model
 
     public static function getProdiMapping()
     {
-        return [
-            '52' => 'Teknik Mesin',
-            '51' => 'Teknik Sipil',
-            '43' => 'Ilmu Komputer',
-            '11' => 'Pendidikan Ekonomi',
-            '21' => 'Pendidikan Matematika',
-            '71' => 'Akuntansi',
-            '72' => 'Manajemen',
-            '61' => 'Ilmu Hukum',
-            // nim belum lengkap
-        ];
+        return ProgramStudi::pluck('nama', 'kode')->toArray();
     }
 
     public function getAngkatanAttribute()

@@ -7,6 +7,7 @@ use App\Models\Pengumuman;
 use App\Models\Persyaratan;
 use App\Models\Mahasiswa;
 use App\Models\Pendaftaran;
+use App\Models\ProgramStudi;
 use Illuminate\Http\Request;
 
 class PublicController extends Controller
@@ -36,8 +37,21 @@ class PublicController extends Controller
         return view('pengumuman', compact('pengumuman'));
     }
 
+    public function getProdiList()
+    {
+        return response()->json(ProgramStudi::pluck('nama', 'kode'));
+    }
+
     public function cekStatus($nim)
     {
+        // Logged-in mahasiswa may only check their own NIM
+        if (auth()->check() && auth()->user()->role === 'mahasiswa') {
+            $ownMhs = Mahasiswa::where('user_id', auth()->id())->first();
+            if (!$ownMhs || $ownMhs->nim !== $nim) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
+        }
+
         $mahasiswa = Mahasiswa::where('nim', $nim)->first();
         if (!$mahasiswa) {
             return response()->json(['success' => false, 'message' => 'Not Found']);

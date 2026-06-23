@@ -184,26 +184,20 @@
         });
     }
 
-    document.getElementById('nim').addEventListener('input', function() {
-        var nim = this.value;
-        var prodiField = document.getElementById('program_studi');
-        var mapping = {
-            '52': 'Teknik Mesin',
-            '51': 'Teknik Sipil',
-            '43': 'Ilmu Komputer',
-            '11': 'Pendidikan Ekonomi',
-            '21': 'Pendidikan Matematika',
-            '71': 'Akuntansi',
-            '72': 'Manajemen',
-            '61': 'Ilmu Hukum'
-        };
-        if (nim.length >= 4) {
-            var kode = nim.substring(2, 4);
-            prodiField.value = mapping[kode] || 'Prodi Tidak Terdaftar (' + kode + ')';
-        } else {
-            prodiField.value = '';
-        }
-    });
+    fetch('/api/program-studi')
+        .then(function(r) { return r.json(); })
+        .then(function(mapping) {
+            document.getElementById('nim').addEventListener('input', function() {
+                var nim = this.value;
+                var prodiField = document.getElementById('program_studi');
+                if (nim.length >= 4) {
+                    var kode = nim.substring(2, 4);
+                    prodiField.value = mapping[kode] || 'Prodi Tidak Terdaftar (' + kode + ')';
+                } else {
+                    prodiField.value = '';
+                }
+            });
+        });
 })();
 </script>
 @endsection

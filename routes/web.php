@@ -28,6 +28,7 @@ Route::get('/jadwal', [\App\Http\Controllers\PublicController::class, 'jadwal'])
 Route::get('/pengumuman', [\App\Http\Controllers\PublicController::class, 'pengumuman'])->name('pengumuman');
 Route::get('/api/cek-status/{nim}', [\App\Http\Controllers\PublicController::class, 'cekStatus'])
     ->middleware('throttle:10,1');
+Route::get('/api/program-studi', [\App\Http\Controllers\PublicController::class, 'getProdiList']);
 
 // ============================================
 // GUEST ROUTES (Hanya untuk yang belum login)
@@ -113,10 +114,11 @@ Route::middleware('auth')->group(function () {
         Route::post('pendaftaran', [PendaftaranController::class, 'store'])->name('pendaftaran.store');
         Route::post('pendaftaran/submit', [PendaftaranController::class, 'submit'])->name('pendaftaran.submit');
         Route::get('berkas', [BerkasController::class, 'index'])->name('berkas.index');
-        Route::post('berkas', [BerkasController::class, 'store'])->name('berkas.store');
+        Route::post('berkas', [BerkasController::class, 'store'])->middleware('throttle:10,1')->name('berkas.store');
         Route::delete('berkas/{berkas}', [BerkasController::class, 'destroy'])->name('berkas.destroy');
-        Route::post('berkas/portofolio', [BerkasController::class, 'storePortofolio'])->name('berkas.portofolio.store');
+        Route::post('berkas/portofolio', [BerkasController::class, 'storePortofolio'])->middleware('throttle:10,1')->name('berkas.portofolio.store');
         Route::delete('berkas/portofolio/{id}', [BerkasController::class, 'destroyPortofolio'])->name('berkas.portofolio.destroy');
+        Route::get('berkas/{berkas}/lihat', [BerkasController::class, 'lihat'])->name('berkas.lihat');
     });
 
     // -----------------------------------------------
