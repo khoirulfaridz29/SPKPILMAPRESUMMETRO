@@ -438,15 +438,16 @@
             line-height: 1 !important;
         }
 
-        /* GLOBAL CURSOR — teks hanya untuk elemen input */
-        * { cursor: default; }
+        /* GLOBAL CURSOR — panah di non-interaktif, I-beam hanya di input */
+        html { cursor: default; }
         a, button, [role="button"], .btn, .nav-link, .dropdown-item,
         [data-bs-toggle], summary, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],
         input[type="checkbox"], input[type="radio"],
         .btn-close, .sidebar-toggle { cursor: pointer; }
         input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-        textarea, select, [contenteditable="true"] { cursor: text; }
+        textarea { cursor: text; }
+        select { cursor: pointer; }
         .disabled, [disabled], .btn.disabled, fieldset:disabled * { cursor: default !important; }
 
         .card .table-responsive,
