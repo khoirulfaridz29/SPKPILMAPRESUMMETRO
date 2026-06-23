@@ -3,8 +3,8 @@
 @section('custom-css')
     /* Hero Section */
     .hero-section {
-        background-color: #1e40af !important;
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+        background-color: var(--primary) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         padding: 100px 0;
         color: white !important;
         position: relative;
@@ -91,8 +91,8 @@
 
     .hero-btn-white {
         background-color: white;
-        color: #1e40af;
-        border-radius: 12px;
+        color: var(--primary);
+        border-radius: var(--radius);
         padding: 14px 35px;
         font-weight: 700;
         text-decoration: none;
@@ -104,13 +104,13 @@
     .hero-btn-white:hover {
         transform: translateY(-3px);
         box-shadow: 0 10px 25px rgba(255, 255, 255, 0.2);
-        color: #1e40af;
+        color: var(--primary);
     }
 
     .hero-btn-orange {
         background-color: #ff7b00;
         color: white;
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 14px 35px;
         font-weight: 700;
         text-decoration: none;
@@ -118,7 +118,6 @@
         align-items: center;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 20px rgba(255, 123, 0, 0.4);
-        margin-left: 15px;
     }
     .hero-btn-orange:hover {
         transform: translateY(-3px);
@@ -130,14 +129,13 @@
     /* Right Cards in Hero */
     .hero-card {
         background-color: rgba(255, 255, 255, 0.08);
-        backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 18px;
         padding: 18px 24px;
         margin-bottom: 18px;
         display: flex;
         align-items: center;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease;
         cursor: pointer;
         text-decoration: none;
         color: white;
@@ -147,6 +145,10 @@
         transform: translateX(-10px) scale(1.02);
         border-color: rgba(255, 255, 255, 0.3);
         color: white;
+    }
+    .hero-card:focus, .hero-card:focus-visible, .hero-card:active {
+        outline: none !important;
+        box-shadow: none !important;
     }
     .hero-card-icon {
         background-color: rgba(255, 255, 255, 0.2);
@@ -158,11 +160,11 @@
         justify-content: center;
         margin-right: 20px;
         font-size: 20px;
-        transition: all 0.3s;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
     .hero-card:hover .hero-card-icon {
         background-color: #ffaa00;
-        color: #1e40af;
+        color: var(--primary);
     }
     .hero-card-text h6 {
         margin: 0;
@@ -184,7 +186,7 @@
     .section-title {
         text-align: center;
         font-weight: 700;
-        color: #1e3a8a;
+        color: var(--primary-dark);
         margin-bottom: 50px;
         position: relative;
         font-size: 2.5rem;
@@ -227,7 +229,7 @@
         font-size: 1.3rem;
         font-weight: 700;
         margin: 0;
-        color: #1e3a8a;
+        color: var(--primary-dark);
         flex: 1;
     }
 
@@ -239,7 +241,7 @@
         text-transform: uppercase;
         letter-spacing: 1px;
     }
-    .badge-blue { background-color: #eff6ff; color: #2563eb; }
+    .badge-blue { background-color: var(--bg); color: var(--primary); }
     .badge-green { background-color: #ecfdf5; color: #059669; }
     .badge-gray { background-color: #f1f5f9; color: #64748b; }
 
@@ -251,14 +253,16 @@
         align-items: center;
     }
     .schedule-detail i {
-        color: #3b82f6;
+        color: var(--primary-light);
         width: 25px;
         font-size: 16px;
+        margin-right: 10px;
+        text-align: center;
     }
     .btn-detail {
-        background-color: #1e3a8a;
+        background-color: var(--primary-dark);
         color: white;
-        border-radius: 12px;
+        border-radius: var(--radius);
         padding: 10px 24px;
         font-size: 14px;
         font-weight: 700;
@@ -269,7 +273,7 @@
         text-align: center;
     }
     .btn-detail:hover {
-        background-color: #1e40af;
+        background-color: var(--primary);
         color: white;
         box-shadow: 0 8px 20px rgba(30, 58, 138, 0.3);
     }
@@ -279,7 +283,6 @@
         .hero-title { font-size: 4rem; }
         .hero-subtitle { font-size: 1.8rem; }
         .hero-section { padding: 60px 0; }
-        .hero-btn-orange { margin-left: 0; margin-top: 15px; }
     }
 @endsection
 
@@ -312,9 +315,9 @@
             <div class="col-lg-7 mb-5 mb-lg-0">
                 <div class="badge-status">
                     @if($isRegistrationOpen)
-                        <i class="fa-solid fa-circle status-open"></i> Pendaftaran Dibuka
+                        <span class="status-dot status-open"><span class="dot-inner"></span></span> Pendaftaran Dibuka
                     @else
-                        <i class="fa-solid fa-circle status-closed"></i> Pendaftaran Tutup
+                        <span class="status-dot status-closed"><span class="dot-inner"></span></span> Pendaftaran Tutup
                     @endif
                 </div>
                 <h1 class="hero-title">SELEKSI <span>PILMAPRES</span></h1>
@@ -323,9 +326,11 @@
                 <p class="hero-quote">"Melahirkan mahasiswa berprestasi yang inovatif, inspiratif, dan berkontribusi untuk kemajuan bangsa."</p>
 
                 <div class="mt-4 d-flex flex-wrap gap-2">
+                    @if($isRegistrationOpen)
                     <a href="{{ route('register') }}" class="hero-btn-white">
                         <i class="fa-solid fa-user-plus me-2"></i> Daftar Sekarang
                     </a>
+                    @endif
                     <a href="{{ route('login') }}" class="hero-btn-orange">
                         <i class="fa-solid fa-right-to-bracket me-2"></i> Masuk Akun
                     </a>
@@ -472,9 +477,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body pb-5 px-4">
-                <p class="text-muted small mb-4">Masukkan NIM Anda untuk melihat status verifikasi berkas dan hasil seleksi sementara.</p>
+                <p class="text-muted small mb-4">Masukkan NPM Anda untuk melihat status verifikasi berkas dan hasil seleksi sementara.</p>
                 <div class="input-group mb-4 shadow-sm" style="border-radius: 15px; overflow: hidden; border: 1px solid #e2e8f0;">
-                    <input type="text" id="inputNimCek" class="form-control border-0 p-3" placeholder="Masukkan NIM Mahasiswa...">
+                    <input type="text" id="inputNimCek" class="form-control border-0 p-3" placeholder="Masukkan NPM Mahasiswa...">
                     <button class="btn btn-primary px-4" type="button" id="btnCekStatus">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -512,7 +517,7 @@
                     <p class="mt-3 small text-muted">Mencari data mahasiswa...</p>
                 </div>
                 <div id="errorCek" class="alert alert-danger d-none border-0 rounded-4 mt-3">
-                    <i class="fa-solid fa-circle-exclamation me-2"></i> Data tidak ditemukan. Pastikan NIM sudah benar.
+                    <i class="fa-solid fa-circle-exclamation me-2"></i> Data tidak ditemukan. Pastikan NPM sudah benar.
                 </div>
             </div>
         </div>

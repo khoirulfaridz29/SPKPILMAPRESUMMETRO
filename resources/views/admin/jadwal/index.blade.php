@@ -9,28 +9,29 @@
     </a>
 </div>
 
-<div class="card">
+<div class="card border-0 shadow-sm" style="border-radius:var(--radius)">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0 align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-4">#</th>
-                    <th>Kegiatan</th>
-                    <th>Mulai</th>
-                    <th>Selesai</th>
-                    <th>Keterangan</th>
-                    <th class="text-center">Aksi</th>
+        <div class="table-responsive">
+        <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">
+            <thead>
+                <tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb">
+                    <th style="width:40px;padding:0.6rem 0 0.6rem 1rem;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem">#</th>
+                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Kegiatan</th>
+                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Mulai</th>
+                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Selesai</th>
+                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem">Keterangan</th>
+                    <th style="width:64px;padding:0.6rem 0.5rem 0.6rem 0;text-align:center;font-weight:600;color:#6b7280;font-size:0.72rem">Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($jadwal as $i => $item)
-                <tr>
-                    <td class="ps-4 text-muted">{{ $i + 1 }}</td>
-                    <td class="fw-semibold">{{ $item->kegiatan }}</td>
-                    <td>{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }}</td>
-                    <td>{{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}</td>
-                    <td>{{ $item->keterangan ?? '-' }}</td>
-                    <td class="text-center">
+                <tr style="border-bottom:1px solid #f3f4f6">
+                    <td style="padding:0.7rem 0 0.7rem 1rem;color:#9ca3af;font-size:0.75rem">{{ $i + 1 }}</td>
+                    <td style="padding:0.7rem 0;font-weight:600;white-space:nowrap">{{ $item->kegiatan }}</td>
+                    <td style="padding:0.7rem 0;white-space:nowrap">{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d M Y') }}</td>
+                    <td style="padding:0.7rem 0;white-space:nowrap">{{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d M Y') }}</td>
+                    <td style="padding:0.7rem 0">{{ $item->keterangan ?? '-' }}</td>
+                    <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                         <a href="{{ route('admin.jadwal.edit', $item) }}" class="btn btn-sm btn-outline-secondary me-1">
                             <i class="fa-solid fa-pen"></i>
                         </a>
@@ -43,13 +44,14 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">
+                    <td colspan="6" style="padding:2rem;text-align:center;color:#9ca3af">
                         <i class="fa-solid fa-calendar-xmark fa-2x mb-2 d-block"></i> Belum ada data jadwal.
                     </td>
                 </tr>
                 @endforelse
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 @endsection

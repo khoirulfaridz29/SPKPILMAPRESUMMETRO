@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\PersyaratanRequest;
 use App\Models\Persyaratan;
-use Illuminate\Http\Request;
 
 class PersyaratanController extends Controller
 {
@@ -19,15 +19,9 @@ class PersyaratanController extends Controller
         return view('admin.persyaratan.create');
     }
 
-    public function store(Request $request)
+    public function store(PersyaratanRequest $request)
     {
-        $request->validate([
-            'nama_syarat' => 'required|string|max:255',
-            'keterangan'  => 'nullable|string',
-            'is_required' => 'required|boolean',
-        ]);
-
-        Persyaratan::create($request->all());
+        Persyaratan::create($request->validated());
 
         return redirect()->route('admin.persyaratan.index')->with('success', 'Persyaratan berhasil ditambahkan.');
     }
@@ -37,15 +31,9 @@ class PersyaratanController extends Controller
         return view('admin.persyaratan.edit', compact('persyaratan'));
     }
 
-    public function update(Request $request, Persyaratan $persyaratan)
+    public function update(PersyaratanRequest $request, Persyaratan $persyaratan)
     {
-        $request->validate([
-            'nama_syarat' => 'required|string|max:255',
-            'keterangan'  => 'nullable|string',
-            'is_required' => 'required|boolean',
-        ]);
-
-        $persyaratan->update($request->all());
+        $persyaratan->update($request->validated());
 
         return redirect()->route('admin.persyaratan.index')->with('success', 'Persyaratan berhasil diperbarui.');
     }

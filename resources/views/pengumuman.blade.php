@@ -3,8 +3,8 @@
 @section('custom-css')
 <style>
     .page-header {
-        background-color: #1e40af !important;
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+        background-color: var(--primary) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         position: relative;
         overflow: hidden;
     }
@@ -34,7 +34,7 @@
     }
 
     .announcement-card {
-        border-radius: 12px;
+        border-radius: var(--radius);
         border: 1px solid #e2e8f0;
         box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         margin-bottom: 20px;
@@ -48,7 +48,7 @@
         background-color: #f8fafc;
         border: 1px solid #e2e8f0;
         padding: 10px;
-        border-radius: 8px;
+        border-radius: var(--radius);
         text-align: center;
         min-width: 80px;
     }
@@ -94,7 +94,7 @@
                         <h4 class="fw-bold mb-2">{{ $item->judul }}</h4>
                         <div class="text-muted small mb-3 d-md-none"><i class="fa-regular fa-calendar me-1"></i> {{ $date->format('d M Y') }}</div>
                         <div class="text-muted mb-3">
-                            {!! $item->konten !!}
+                            {{ strip_tags($item->konten) }}
                         </div>
                         @if($item->file_path)
                         <div class="mt-3">

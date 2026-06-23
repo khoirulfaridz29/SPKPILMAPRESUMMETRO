@@ -14,6 +14,14 @@
         <form action="{{ route('admin.kriteria.update', $kriteria) }}" method="POST">
             @csrf @method('PUT')
             <div class="mb-3">
+                <label class="form-label fw-semibold">Jenjang</label>
+                <select name="jenjang_id" class="form-select" required>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ $kriteria->jenjang_id == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-semibold">Kode Kriteria</label>
                 <input type="text" name="kode_kriteria" class="form-control @error('kode_kriteria') is-invalid @enderror"
                     value="{{ old('kode_kriteria', $kriteria->kode_kriteria) }}" required>

@@ -10,22 +10,45 @@ use Illuminate\Support\Facades\Auth;
 
 class PendaftaranController extends Controller
 {
+    use \App\Traits\Notifiable;
+
     private function getMahasiswa()
     {
         return Mahasiswa::where('user_id', Auth::id())->first();
+    }
+
+    private function isPendaftaranOpen()
+    {
+        $today = now()->toDateString();
+        return \App\Models\Jadwal::where('kegiatan', 'like', '%Pendaftaran%')
+            ->where('tanggal_mulai', '<=', $today)
+            ->where('tanggal_selesai', '>=', $today)
+            ->exists();
+    }
+
+    private function getPendaftaranPeriod()
+    {
+        return \App\Models\Jadwal::where('kegiatan', 'like', '%Pendaftaran%')->first();
     }
 
     public function index()
     {
         $mahasiswa = $this->getMahasiswa();
         $pendaftaran = $mahasiswa
-            ? Pendaftaran::where('mahasiswa_id', $mahasiswa->id)->with('berkas', 'hasil')->first()
+            ? Pendaftaran::where('mahasiswa_id', $mahasiswa->id)->with('berkas', 'hasil', 'rekap')->first()
             : null;
-        return view('mahasiswa.pendaftaran.index', compact('pendaftaran', 'mahasiswa'));
+        $pendaftaranOpen = $this->isPendaftaranOpen();
+        $period = $this->getPendaftaranPeriod();
+        return view('mahasiswa.pendaftaran.index', compact('pendaftaran', 'mahasiswa', 'pendaftaranOpen', 'period'));
     }
 
     public function create()
     {
+        if (!$this->isPendaftaranOpen()) {
+            return redirect()->route('mahasiswa.pendaftaran.index')
+                ->with('error', 'Pendaftaran telah ditutup. Silakan hubungi admin untuk informasi lebih lanjut.');
+        }
+
         $mahasiswa = $this->getMahasiswa();
         if (!$mahasiswa) {
             return redirect()->back()->with('error', 'Profil mahasiswa belum lengkap.');
@@ -39,6 +62,11 @@ class PendaftaranController extends Controller
 
     public function store(Request $request)
     {
+        if (!$this->isPendaftaranOpen()) {
+            return redirect()->route('mahasiswa.pendaftaran.index')
+                ->with('error', 'Pendaftaran telah ditutup.');
+        }
+
         $request->validate([
             'ipk' => 'required|numeric|min:0|max:4',
             'pernah_pilmapres' => 'required|in:Belum Pernah,Lokal,Nasional',
@@ -60,6 +88,8 @@ class PendaftaranController extends Controller
             'is_submitted'   => false,
         ]);
 
+        $this->notifyAllAdmins('Mahasiswa ' . $mahasiswa->user->nama_lengkap . ' (' . $mahasiswa->nim . ') telah mendaftar PILMAPRES.', 'info');
+
         return redirect()->route('mahasiswa.berkas.index')->with('success', 'Data pendaftaran awal berhasil disimpan. Silakan unggah berkas persyaratan.');
     }
 
@@ -72,6 +102,8 @@ class PendaftaranController extends Controller
         if (!$pendaftaran) abort(404);
 
         $pendaftaran->update(['is_submitted' => true]);
+
+        $this->notifyAllAdmins('Mahasiswa ' . $pendaftaran->mahasiswa->user->nama_lengkap . ' telah mengirim pendaftaran secara final.', 'info');
 
         return redirect()->route('mahasiswa.pendaftaran.index')->with('success', 'Pendaftaran Anda berhasil dikirim secara final.');
     }

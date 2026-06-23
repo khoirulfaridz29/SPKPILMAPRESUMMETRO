@@ -9,6 +9,7 @@ class RubrikCapaianUnggulan extends Model
     protected $table = 'rubrik_capaian_unggulans';
 
     protected $fillable = [
+        'jenjang_id',
         'bidang',
         'wujud_capaian_unggulan',
         'kode_internasional',
@@ -22,4 +23,9 @@ class RubrikCapaianUnggulan extends Model
         'kode_kab_kota',
         'skor_kab_kota',
     ];
+
+    public function jenjang()
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
 }

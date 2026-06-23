@@ -5,14 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PILMAPRES Universitas Muhammadiyah Metro</title>
     <link rel="icon" href="{{ asset('assets/logoummetro.webp') }}" type="image/webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+    <!-- Turbo: SPA-like navigation without full reload -->
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo/dist/turbo.es2017-umd.min.js"></script>
+
+    @php
+        $jadwalReg = \App\Models\Jadwal::where('kegiatan', 'like', '%Pendaftaran%')->first();
+        $isRegistrationOpen = $jadwalReg && now()->between(\Carbon\Carbon::parse($jadwalReg->tanggal_mulai), \Carbon\Carbon::parse($jadwalReg->tanggal_selesai));
+    @endphp
 
     <style>
+        :root {
+            --primary: #1a3c7a;
+            --primary-light: #2a6df0;
+            --primary-dark: #0f2550;
+            --accent: #5b9bd5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --radius: 10px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #fcfcfc;
@@ -33,6 +60,49 @@
         .fw-normal {
             font-weight: 400 !important;
         }
+
+        /* Pulsing ring effect for status dot */
+        .status-dot {
+            position: relative;
+            display: inline-flex;
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+        }
+        .status-dot .dot-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: currentColor;
+            position: relative;
+            z-index: 1;
+        }
+        .status-dot.status-open { color: #4ade80; }
+        .status-dot.status-closed { color: #f87171; }
+        .status-dot .dot-inner {
+            animation: dot-pulse 2s ease-in-out infinite;
+        }
+        .status-dot::before,
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            animation: ping-ring 2s ease-out infinite;
+        }
+        .status-dot::after {
+            animation-delay: 1s;
+        }
+        @keyframes ping-ring {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+        @keyframes dot-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         /* Navbar Styling */
         .navbar {
             padding: 15px 0;
@@ -42,7 +112,7 @@
         }
         .navbar-brand .logo-text {
             font-weight: 700;
-            color: #1a3c7a;
+            color: var(--primary);
             font-size: 20px;
             line-height: 1.2;
         }
@@ -59,7 +129,7 @@
             position: relative;
         }
         .nav-link:hover, .nav-link.active {
-            color: #1a3c7a;
+            color: var(--primary);
             font-weight: 600;
         }
         .nav-link.active::after {
@@ -73,20 +143,20 @@
             border-radius: 2px;
         }
         .btn-outline-custom {
-            color: #1a3c7a;
-            border: 1px solid #1a3c7a;
-            border-radius: 20px;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: var(--radius) !important;
             padding: 8px 20px;
             font-weight: 600;
         }
         .btn-outline-custom:hover {
-            background-color: #1a3c7a;
+            background-color: var(--primary);
             color: white;
         }
         .btn-orange {
             background-color: #ff7b00;
             color: white;
-            border-radius: 20px;
+            border-radius: var(--radius) !important;
             padding: 8px 25px;
             font-weight: 600;
             border: none;
@@ -98,7 +168,7 @@
         }
 
         .page-header {
-            background: linear-gradient(135deg, #184ab8 0%, #2a6df0 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             padding: 50px 0;
             color: white;
             text-align: center;
@@ -109,12 +179,21 @@
         }
 
         footer {
-            background-color: #1a3c7a;
+            background-color: var(--primary);
             color: white;
             padding: 20px 0;
             text-align: center;
             flex-shrink: 0;
         }
+
+        /* Global cursor — teks hanya untuk input */
+        * { cursor: default; }
+        a, button, [role="button"], .btn, label[for],
+        input[type="button"], input[type="submit"], input[type="reset"],
+        input[type="checkbox"], input[type="radio"] { cursor: pointer; }
+        input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+        textarea, select, [contenteditable="true"] { cursor: text; }
+        .disabled, [disabled] { cursor: default !important; }
 
         @yield('custom-css')
     </style>
@@ -143,10 +222,12 @@
                 </ul>
                 <div class="d-flex align-items-center">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-outline-custom me-2"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
+                        <a href="{{ route('dashboard') }}" data-turbo="false" class="btn btn-outline-custom me-2"><i class="fa-solid fa-chart-line me-1"></i> Dashboard</a>
                     @else
-                        <a href="{{ route('register') }}" class="btn btn-outline-custom me-2 text-decoration-none">Daftar</a>
-                        <a href="{{ route('login') }}" class="btn btn-orange text-decoration-none"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Login</a>
+                        @if($isRegistrationOpen)
+                        <a href="{{ route('register') }}" data-turbo="false" class="btn btn-outline-custom me-2 text-decoration-none">Daftar</a>
+                        @endif
+                        <a href="{{ route('login') }}" data-turbo="false" class="btn btn-orange text-decoration-none"><i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Login</a>
                     @endauth
                 </div>
             </div>
@@ -167,7 +248,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        function initFrontend() {
             @if(session('success'))
                 Swal.fire({
                     icon: 'success',
@@ -258,7 +339,11 @@
                     });
                 }
             });
-        });
+        }
+
+        // Run on both initial load and Turbo navigations
+        document.addEventListener('DOMContentLoaded', initFrontend);
+        document.addEventListener('turbo:load', initFrontend);
     </script>
 </body>
 </html>

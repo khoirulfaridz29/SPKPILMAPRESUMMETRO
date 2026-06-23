@@ -13,7 +13,19 @@
     <div class="card-body p-4">
         <form action="{{ route('admin.rubrik-wawancara-cu.store') }}" method="POST">
             @csrf
-            
+            <div class="mb-3">
+                <label class="form-label fw-bold">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    <option value="">Pilih Jenjang</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}">{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Label Tampilan <small class="text-muted">(cth: Wawancara CU)</small></label>
+                <input type="text" name="label" class="form-control" placeholder="Kosongkan untuk default">
+            </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Kriteria Penilaian</label>
                 <input type="text" name="kriteria_penilaian" class="form-control" required placeholder="Contoh: Kemampuan Komunikasi & Presentasi">
@@ -24,7 +36,7 @@
                 <input type="number" name="bobot" class="form-control" required min="1" placeholder="Contoh: 30">
             </div>
 
-            <button type="submit" class="btn btn-primary w-100 rounded-pill">
+            <button type="submit" class="btn btn-primary w-100">
                 <i class="fa-solid fa-save me-2"></i> Simpan Rubrik
             </button>
         </form>

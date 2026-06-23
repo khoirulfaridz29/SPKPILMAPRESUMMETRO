@@ -3,49 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RubrikPresentasiGkRequest;
 use App\Models\RubrikPresentasiGk;
 use Illuminate\Http\Request;
+use App\Models\Jenjang;
 
 class RubrikPresentasiGkController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rubriks = RubrikPresentasiGk::all();
-        return view('admin.rubrik_presentasi_gk.index', compact('rubriks'));
+        $query = RubrikPresentasiGk::query();
+        if ($request->filled('jenjang_id')) {
+            $query->where('jenjang_id', $request->jenjang_id);
+        }
+        $rubriks = $query->with('jenjang')->get();
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_presentasi_gk.index', compact('rubriks', 'jenjangs'));
     }
 
     public function create()
     {
-        return view('admin.rubrik_presentasi_gk.create');
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_presentasi_gk.create', compact('jenjangs'));
     }
 
-    public function store(Request $request)
+    public function store(RubrikPresentasiGkRequest $request)
     {
-        $request->validate([
-            'aspek_penilaian' => 'required|string|max:255',
-            'kriteria_penilaian' => 'required|string|max:255',
-            'bobot' => 'required|numeric|min:1',
-        ]);
-
-        RubrikPresentasiGk::create($request->all());
+        RubrikPresentasiGk::create($request->validated());
 
         return redirect()->route('admin.rubrik-presentasi-gk.index')->with('success', 'Rubrik Presentasi GK berhasil ditambahkan.');
     }
 
     public function edit(RubrikPresentasiGk $rubrik_presentasi_gk)
     {
-        return view('admin.rubrik_presentasi_gk.edit', compact('rubrik_presentasi_gk'));
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_presentasi_gk.edit', compact('rubrik_presentasi_gk', 'jenjangs'));
     }
 
-    public function update(Request $request, RubrikPresentasiGk $rubrik_presentasi_gk)
+    public function update(RubrikPresentasiGkRequest $request, RubrikPresentasiGk $rubrik_presentasi_gk)
     {
-        $request->validate([
-            'aspek_penilaian' => 'required|string|max:255',
-            'kriteria_penilaian' => 'required|string|max:255',
-            'bobot' => 'required|numeric|min:1',
-        ]);
-
-        $rubrik_presentasi_gk->update($request->all());
+        $rubrik_presentasi_gk->update($request->validated());
 
         return redirect()->route('admin.rubrik-presentasi-gk.index')->with('success', 'Rubrik Presentasi GK berhasil diperbarui.');
     }

@@ -11,10 +11,17 @@ class RubrikBahasaInggris extends Model
 
     protected $table = 'rubrik_bahasa_inggris';
     protected $fillable = [
+        'jenjang_id',
+        'label',
         'field',
         'excellent_score', 'excellent_criteria',
         'good_score', 'good_criteria',
         'fair_score', 'fair_criteria',
         'poor_score', 'poor_criteria'
     ];
+
+    public function jenjang()
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
 }

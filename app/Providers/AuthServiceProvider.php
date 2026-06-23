@@ -9,9 +9,6 @@ class AuthServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        Gate::define('admin', fn($user) => $user->role === 'admin');
-        Gate::define('mahasiswa', fn($user) => $user->role === 'mahasiswa');
-        Gate::define('juri', fn($user) => $user->role === 'juri');
-        Gate::define('wr3', fn($user) => $user->role === 'wr3');
+        // Semua Gate didefinisikan di AppServiceProvider
     }
 }

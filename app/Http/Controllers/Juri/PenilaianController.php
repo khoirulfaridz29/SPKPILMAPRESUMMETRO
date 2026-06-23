@@ -14,20 +14,40 @@ class PenilaianController extends Controller
 {
     public function index()
     {
-        $penugasans = PenugasanJuri::with('pendaftaran.mahasiswa.user')
-            ->where('juri_id', Auth::id())->get();
-        return view('juri.penilaian.index', compact('penugasans'));
+        $juriId = Auth::id();
+        $penugasans = PenugasanJuri::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang')
+            ->where('juri_id', $juriId)->get();
+
+        $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
+        $grouped = $penugasans->groupBy(fn($pg) => $pg->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? '-');
+
+        $kriteriaPerJenjang = KriteriaPenilaian::selectRaw('jenjang_id, COUNT(*) as cnt')
+            ->groupBy('jenjang_id')
+            ->pluck('cnt', 'jenjang_id');
+
+        $sudahDinilai = \App\Models\Penilaian::where('juri_id', $juriId)
+            ->whereIn('pendaftaran_id', $penugasans->pluck('pendaftaran_id'))
+            ->selectRaw('pendaftaran_id, COUNT(*) as cnt')
+            ->groupBy('pendaftaran_id')
+            ->pluck('cnt', 'pendaftaran_id');
+
+        return view('juri.penilaian.index', compact('penugasans', 'grouped', 'jenjangList', 'kriteriaPerJenjang', 'sudahDinilai'));
     }
 
     public function show(Pendaftaran $pendaftaran)
     {
-        $kriterias = KriteriaPenilaian::all();
-        $pendaftaran->load('mahasiswa.user', 'berkas');
+        $tugas = PenugasanJuri::where('juri_id', Auth::id())
+            ->where('pendaftaran_id', $pendaftaran->id)->exists();
+        abort_if(!$tugas, 403);
 
-        $rubrik_naskah = \App\Models\RubrikNaskahGk::all();
-        $rubrik_presentasi = \App\Models\RubrikPresentasiGk::all();
-        $rubrik_inggris = \App\Models\RubrikBahasaInggris::all();
-        $rubrik_wawancara_cu = \App\Models\RubrikWawancaraCu::all();
+        $pendaftaran->load('mahasiswa.user', 'mahasiswa.jenjang', 'berkas');
+        $jenjangId = $pendaftaran->mahasiswa->jenjang_id;
+
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $jenjangId)->get();
+        $rubrik_naskah = \App\Models\RubrikNaskahGk::where('jenjang_id', $jenjangId)->get();
+        $rubrik_presentasi = \App\Models\RubrikPresentasiGk::where('jenjang_id', $jenjangId)->get();
+        $rubrik_inggris = \App\Models\RubrikBahasaInggris::where('jenjang_id', $jenjangId)->get();
+        $rubrik_wawancara_cu = \App\Models\RubrikWawancaraCu::where('jenjang_id', $jenjangId)->get();
 
         $penilaian_naskah = \App\Models\PenilaianNaskahGk::where('juri_id', Auth::id())
             ->where('pendaftaran_id', $pendaftaran->id)->pluck('nilai_input', 'rubrik_naskah_gk_id');
@@ -71,11 +91,9 @@ class PenilaianController extends Controller
 
     public function store(Request $request, Pendaftaran $pendaftaran)
     {
-        try {
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE penilaian MODIFY COLUMN nilai_input DECIMAL(8,4) NOT NULL");
-        } catch (\Exception $e) {
-            // ignore
-        }
+        $tugas = PenugasanJuri::where('juri_id', Auth::id())
+            ->where('pendaftaran_id', $pendaftaran->id)->exists();
+        abort_if(!$tugas, 403);
 
         // Menyimpan nilai detail Naskah GK
         if ($request->has('naskah')) {
@@ -118,7 +136,9 @@ class PenilaianController extends Controller
         }
 
         // --- HITUNG AGREGASI UNTUK KRITERIA PENILAIAN SPK ---
-        $kriterias = KriteriaPenilaian::all()->pluck('id', 'kode_kriteria');
+        $pendaftaran->load('mahasiswa');
+        $jenjangId = $pendaftaran->mahasiswa->jenjang_id;
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $jenjangId)->pluck('id', 'kode_kriteria');
 
         // 1. Capaian Unggulan (CU) Berkas (A01)
         if (isset($kriterias['A01']) && $request->has('nilai_a01')) {
@@ -235,8 +255,71 @@ class PenilaianController extends Controller
 
     public function nilai()
     {
-        $penugasans = PenugasanJuri::with('pendaftaran.mahasiswa.user', 'pendaftaran.penilaian')
-            ->where('juri_id', Auth::id())->get();
-        return view('juri.penilaian.nilai', compact('penugasans'));
+        $juriId = Auth::id();
+        $penugasans = PenugasanJuri::with(
+            'pendaftaran.mahasiswa.user',
+            'pendaftaran.mahasiswa.jenjang',
+            'pendaftaran.penilaian.kriteria'
+        )
+            ->where('juri_id', $juriId)->get();
+
+        $grouped = $penugasans->groupBy(fn($pg) => $pg->pendaftaran->mahasiswa->jenjang_id ?? 0);
+
+        $shortNames = [
+            'A01' => 'Portofolio CU',
+            'A02' => 'Naskah GK',
+            'A03' => 'Video BI',
+            'F01' => 'Wawancara CU',
+            'F02' => 'Presentasi GK',
+            'F03' => 'Lisan BI',
+        ];
+
+        // Load all rubrik per jenjang
+        $jenjangIds = $grouped->keys()->filter(fn($id) => $id > 0);
+        $rubrikLabels = [];
+        $rubrikNaskah = [];
+        $rubrikPresentasi = [];
+        $rubrikWawancara = [];
+        $rubrikInggris = [];
+        foreach ($jenjangIds as $jId) {
+            $rubrikNaskah[$jId] = \App\Models\RubrikNaskahGk::where('jenjang_id', $jId)
+                ->get(['id','aspek_penilaian','kriteria_penilaian','bobot'])->keyBy('id');
+            $rubrikPresentasi[$jId] = \App\Models\RubrikPresentasiGk::where('jenjang_id', $jId)
+                ->get(['id','aspek_penilaian','kriteria_penilaian','bobot'])->keyBy('id');
+            $rubrikWawancara[$jId] = \App\Models\RubrikWawancaraCu::where('jenjang_id', $jId)
+                ->get(['id','kriteria_penilaian','bobot'])->keyBy('id');
+            $rubrikInggris[$jId] = \App\Models\RubrikBahasaInggris::where('jenjang_id', $jId)
+                ->get(['id','field'])->keyBy('id');
+        }
+
+        // Load all detail penilaian for this juri
+        $allWawancara = \App\Models\PenilaianWawancaraCu::where('juri_id', $juriId)
+            ->get()->groupBy('pendaftaran_id');
+        $allNaskah = \App\Models\PenilaianNaskahGk::where('juri_id', $juriId)
+            ->get()->groupBy('pendaftaran_id');
+        $allPresentasi = \App\Models\PenilaianPresentasiGk::where('juri_id', $juriId)
+            ->get()->groupBy('pendaftaran_id');
+        $allInggris = \App\Models\PenilaianBahasaInggris::where('juri_id', $juriId)
+            ->get()->groupBy('pendaftaran_id');
+
+        // Portofolio CU per pendaftaran
+        $allPortofolio = \App\Models\PortofolioCu::whereIn('pendaftaran_id', $penugasans->pluck('pendaftaran_id'))
+            ->where('status_validasi', 'Valid')
+            ->with('rubrikCu')
+            ->get()->groupBy('pendaftaran_id');
+
+        // Hasil penilaian (GAP calculation results)
+        $allHasil = \App\Models\HasilPenilaian::whereIn('pendaftaran_id', $penugasans->pluck('pendaftaran_id'))
+            ->get()->keyBy('pendaftaran_id');
+
+        // Kriteria dengan bobot
+        $kriteriaBobot = \App\Models\KriteriaPenilaian::all()->keyBy('kode_kriteria');
+
+        return view('juri.penilaian.nilai', compact(
+            'grouped', 'shortNames', 'rubrikNaskah', 'rubrikPresentasi',
+            'rubrikWawancara', 'rubrikInggris', 'allWawancara', 'allNaskah',
+            'allPresentasi', 'allInggris', 'allPortofolio', 'allHasil',
+            'kriteriaBobot'
+        ));
     }
 }

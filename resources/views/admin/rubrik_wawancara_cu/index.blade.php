@@ -2,29 +2,43 @@
 @section('title', 'Rubrik Wawancara Capaian Unggulan (CU)')
 
 @section('content')
-<div class="card">
+<div class="card border-0 shadow-sm" style="border-radius:var(--radius)">
     <div class="card-header d-flex justify-content-between align-items-center bg-white py-3">
         <span class="fw-bold fs-5 text-primary"><i class="fa-solid fa-medal me-2"></i> Rubrik Wawancara Capaian Unggulan (CU)</span>
-        <a href="{{ route('admin.rubrik-wawancara-cu.create') }}" class="btn btn-sm btn-primary rounded-pill px-3">
+        <a href="{{ route('admin.rubrik-wawancara-cu.create') }}" class="btn btn-sm btn-primary px-3">
             <i class="fa-solid fa-plus me-1"></i> Tambah Kriteria
         </a>
     </div>
+    <div class="card-body pb-0">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <select name="jenjang_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">Semua Jenjang</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ request('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </form>
+    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light text-secondary">
-                    <tr>
-                        <th class="px-4">Kriteria Penilaian</th>
-                        <th>Bobot</th>
-                        <th class="text-end px-4">Aksi</th>
+            <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">
+                <thead>
+                    <tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb">
+                        <th style="padding:0.6rem 0 0.6rem 1rem;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Kriteria Penilaian</th>
+                        <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Bobot</th>
+                        <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Jenjang</th>
+                        <th style="width:64px;padding:0.6rem 0.5rem 0.6rem 0;text-align:center;font-weight:600;color:#6b7280;font-size:0.72rem">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($rubriks as $r)
-                    <tr>
-                        <td class="px-4 fw-semibold">{{ $r->kriteria_penilaian }}</td>
-                        <td><span class="badge bg-light text-dark fw-bold">{{ $r->bobot }}</span></td>
-                        <td class="text-end px-4">
+                    <tr style="border-bottom:1px solid #f3f4f6">
+                        <td style="padding:0.7rem 0 0.7rem 1rem;font-weight:600">{{ $r->kriteria_penilaian }}</td>
+                        <td style="padding:0.7rem 0"><span class="badge bg-light text-dark fw-bold">{{ $r->bobot }}</span></td>
+                        <td style="padding:0.7rem 0"><span class="badge bg-secondary">{{ $r->jenjang->nama_jenjang ?? '-' }}</span></td>
+                        <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                             <a href="{{ route('admin.rubrik-wawancara-cu.edit', $r->id) }}" class="btn btn-sm btn-outline-primary rounded-circle" style="width:32px; height:32px; padding:0; line-height:32px;">
                                 <i class="fa-solid fa-edit"></i>
                             </a>
@@ -38,8 +52,8 @@
                     </tr>
                     @endforeach
                     @if($rubriks->isEmpty())
-                    <tr>
-                        <td colspan="3" class="text-center py-4 text-muted">Belum ada data rubrik.</td>
+                    <tr style="border-bottom:1px solid #f3f4f6">
+                        <td colspan="4" style="padding:2rem;text-align:center;color:#9ca3af">Belum ada data rubrik.</td>
                     </tr>
                     @endif
                 </tbody>

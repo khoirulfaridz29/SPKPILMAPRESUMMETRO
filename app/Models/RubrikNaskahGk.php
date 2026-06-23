@@ -10,5 +10,10 @@ class RubrikNaskahGk extends Model
     use HasFactory;
 
     protected $table = 'rubrik_naskah_gks';
-    protected $fillable = ['aspek_penilaian', 'kriteria_penilaian', 'bobot'];
+    protected $fillable = ['jenjang_id', 'label', 'aspek_penilaian', 'kriteria_penilaian', 'bobot'];
+
+    public function jenjang()
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
 }

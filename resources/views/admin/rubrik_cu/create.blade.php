@@ -13,6 +13,15 @@
     <div class="card-body">
         <form action="{{ route('admin.rubrik-cu.store') }}" method="POST">
             @csrf
+            <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    <option value="">Pilih Jenjang</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}">{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label">Bidang</label>

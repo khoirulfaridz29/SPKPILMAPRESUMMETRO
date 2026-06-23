@@ -3,64 +3,45 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\KriteriaRequest;
 use App\Models\KriteriaPenilaian;
+use App\Models\Jenjang;
 use Illuminate\Http\Request;
 
 class KriteriaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        try {
-            $columns = \Illuminate\Support\Facades\Schema::getColumnListing('kriteria_penilaian');
-            if (!in_array('tipe_faktor', $columns)) {
-                \Illuminate\Support\Facades\DB::statement("ALTER TABLE kriteria_penilaian ADD COLUMN tipe_faktor ENUM('Core Factor', 'Secondary Factor') NOT NULL DEFAULT 'Core Factor'");
-                \Illuminate\Support\Facades\DB::statement("UPDATE kriteria_penilaian SET tipe_faktor = 'Secondary Factor' WHERE kode_kriteria IN ('A03', 'F03')");
-            }
-        } catch (\Exception $e) {
-            // Ignore
+        $query = KriteriaPenilaian::orderBy('jenis_faktor');
+        if ($request->filled('jenjang_id')) {
+            $query->where('jenjang_id', $request->jenjang_id);
         }
-
-        $kriterias = KriteriaPenilaian::orderBy('jenis_faktor')->get();
-        return view('admin.kriteria.index', compact('kriterias'));
+        $kriterias = $query->with('jenjang')->get();
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.kriteria.index', compact('kriterias', 'jenjangs'));
     }
 
     public function create()
     {
-        return view('admin.kriteria.create');
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.kriteria.create', compact('jenjangs'));
     }
 
-    public function store(Request $request)
+    public function store(KriteriaRequest $request)
     {
-        $request->validate([
-            'kode_kriteria' => 'required|string|max:50|unique:kriteria_penilaian',
-            'nama_kriteria' => 'required|string|max:255',
-            'jenis_faktor'  => 'required|in:Tahap Awal,Tahap Final',
-            'tipe_faktor'   => 'required|in:Core Factor,Secondary Factor',
-            'nilai_target'  => 'required|integer|min:1|max:5',
-            'bobot'         => 'required|numeric|min:0|max:100',
-        ]);
-
-        KriteriaPenilaian::create($request->all());
+        KriteriaPenilaian::create($request->validated());
         return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil ditambahkan.');
     }
 
     public function edit(KriteriaPenilaian $kriteria)
     {
-        return view('admin.kriteria.edit', compact('kriteria'));
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.kriteria.edit', compact('kriteria', 'jenjangs'));
     }
 
-    public function update(Request $request, KriteriaPenilaian $kriteria)
+    public function update(KriteriaRequest $request, KriteriaPenilaian $kriteria)
     {
-        $request->validate([
-            'kode_kriteria' => 'required|string|max:50|unique:kriteria_penilaian,kode_kriteria,'.$kriteria->id,
-            'nama_kriteria' => 'required|string|max:255',
-            'jenis_faktor'  => 'required|in:Tahap Awal,Tahap Final',
-            'tipe_faktor'   => 'required|in:Core Factor,Secondary Factor',
-            'nilai_target'  => 'required|integer|min:1|max:5',
-            'bobot'         => 'required|numeric|min:0|max:100',
-        ]);
-
-        $kriteria->update($request->all());
+        $kriteria->update($request->validated());
         return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
     }
 

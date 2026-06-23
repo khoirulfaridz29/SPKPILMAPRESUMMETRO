@@ -9,16 +9,18 @@
     <span class="fw-bold fs-5">Form Pendaftaran PILMAPRES</span>
 </div>
 
-<div class="card" style="max-width:600px">
+<div class="card border-0 shadow-sm" style="max-width:600px;border-radius:var(--radius)">
     <div class="card-body p-4">
         <div class="alert alert-info mb-4">
             <i class="fa-solid fa-circle-info me-2"></i>
             Dengan mengklik <strong>Kirim Pendaftaran</strong>, Anda menyatakan bersedia mengikuti seluruh proses seleksi PILMAPRES UM Metro.
         </div>
-        <table class="table table-borderless mb-4">
-            <tr><td class="text-muted">Nama</td><td class="fw-semibold">{{ Auth::user()->nama_lengkap }}</td></tr>
-            <tr><td class="text-muted">Username</td><td>{{ Auth::user()->username }}</td></tr>
+        <div class="table-responsive">
+        <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">
+            <tr><td style="padding:0.6rem 0;color:#6b7280;white-space:nowrap;font-weight:600">Nama</td><td style="padding:0.6rem 0;font-weight:600">{{ Auth::user()->nama_lengkap }}</td></tr>
+            <tr><td style="padding:0.6rem 0;color:#6b7280;white-space:nowrap;font-weight:600">Username</td><td style="padding:0.6rem 0">{{ Auth::user()->username }}</td></tr>
         </table>
+        </div>
         <form action="{{ route('mahasiswa.pendaftaran.store') }}" method="POST">
             @csrf
             

@@ -7,16 +7,51 @@ use App\Models\Pendaftaran;
 use App\Models\Penilaian;
 use App\Models\KriteriaPenilaian;
 use App\Models\HasilPenilaian;
+use App\Models\PortofolioCu;
+use App\Models\PenugasanJuri;
+use Illuminate\Http\Request;
 
 class PerhitunganController extends Controller
 {
     use \App\Traits\Notifiable;
 
-    public function index()
+    public function index(Request $request)
     {
-        $pesertaLolos = Pendaftaran::with('mahasiswa.user', 'penilaian', 'hasil')
-            ->where('status_seleksi', 'Lolos Tahap 1')->get();
-        return view('admin.perhitungan.index', compact('pesertaLolos'));
+        $query = Pendaftaran::with('mahasiswa.user', 'mahasiswa.jenjang', 'penilaian', 'hasil')
+            ->where('status_seleksi', 'Lolos Tahap 1');
+
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_daftar', $request->tahun);
+        }
+
+        $pesertaLolos = $query->get();
+        $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
+        $grouped = $pesertaLolos->groupBy(fn($p) => $p->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+
+        $hasilList = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang', 'pendaftaran.penilaian.kriteria')
+            ->orderBy('ranking')->get();
+        $hasilGrouped = $hasilList->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+
+        $kriterias = KriteriaPenilaian::with('jenjang')->get();
+
+        $juries = \App\Models\User::where('role', 'juri')->orderBy('id')->get(['id', 'nama_lengkap']);
+
+        $bobotPerJenjang = [];
+        foreach ($kriterias as $k) {
+            $jid = $k->jenjang_id ?? 1;
+            if (!isset($bobotPerJenjang[$jid])) {
+                $bobotPerJenjang[$jid] = [];
+            }
+            $bobotPerJenjang[$jid][$k->kode_kriteria] = $k->bobot;
+        }
+
+        $years = Pendaftaran::where('status_seleksi', 'Lolos Tahap 1')
+            ->selectRaw('YEAR(tanggal_daftar) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        return view('admin.perhitungan.index', compact('grouped', 'jenjangList', 'years', 'hasilGrouped', 'kriterias', 'juries', 'bobotPerJenjang'));
     }
 
     private function convertToScale10($score)
@@ -55,93 +90,130 @@ class PerhitunganController extends Controller
         };
     }
 
-    public function proses()
+    public static function convertToScale10Static($score)
     {
-       
+        if ($score <= 12.0) return 1;
+        if ($score <= 15.0) return 2;
+        if ($score <= 18.0) return 3;
+        if ($score <= 21.0) return 4;
+        if ($score <= 24.0) return 5;
+        if ($score <= 26.0) return 6;
+        if ($score <= 28.0) return 7;
+        if ($score <= 30.0) return 8;
+        if ($score <= 32.0) return 9;
+        return 10;
+    }
 
-        $kriterias = KriteriaPenilaian::all();
-        $kriteriasMap = $kriterias->keyBy('kode_kriteria');
-        $pesertaLolos = Pendaftaran::with('penugasanJuri', 'mahasiswa.user')->where('status_seleksi', 'Lolos Tahap 1')->get();
+    public static function getGapWeightStatic($gap)
+    {
+        return match ($gap) {
+            0 => 10.0,
+            1 => 9.5,
+            -1 => 9.0,
+            2 => 8.5,
+            -2 => 8.0,
+            3 => 7.5,
+            -3 => 7.0,
+            4 => 6.5,
+            -4 => 6.0,
+            5 => 5.5,
+            -5 => 5.0,
+            -6 => 4.0,
+            -7 => 3.0,
+            -8 => 2.0,
+            -9 => 1.0,
+            default => $gap < 0 ? max(1.0, 10.0 + $gap) : max(1.0, 10.0 - $gap)
+        };
+    }
 
-        if ($kriterias->isEmpty() || $pesertaLolos->isEmpty()) {
+    public function proses(Request $request)
+    {
+        $allKriterias = KriteriaPenilaian::with('jenjang')->get();
+        $kriteriasByJenjang = $allKriterias->groupBy('jenjang_id');
+
+        $query = Pendaftaran::with('penugasanJuri', 'mahasiswa.user')
+            ->where('status_seleksi', 'Lolos Tahap 1');
+
+        if ($request->filled('jenjang_id')) {
+            $query->whereHas('mahasiswa', fn($q) => $q->where('jenjang_id', $request->jenjang_id));
+        }
+
+        $pesertaLolos = $query->get();
+
+        if ($allKriterias->isEmpty() || $pesertaLolos->isEmpty()) {
             return back()->with('error', 'Tidak ada data kriteria atau peserta lolos.');
         }
 
-        // --- 1. OTOMATISASI DAN VERIFIKASI NILAI KRITERIA A01 & A03 ---
-        if (isset($kriteriasMap['A01'])) {
-            $a01KriteriaId = $kriteriasMap['A01']->id;
-            foreach ($pesertaLolos as $pendaftaran) {
-                // Hitung total rekomendasi dari portofolio valid
-                $portofolios = \App\Models\PortofolioCu::where('pendaftaran_id', $pendaftaran->id)
-                    ->where('status_validasi', 'Valid')->get();
-                $total_rekomendasi = 0;
-                foreach ($portofolios as $porto) {
-                    $skor = $porto->skor_rekomendasi;
-                    if ($skor) {
-                        // Ambil semua angka, pakai NILAI TENGAH bila berupa range.
-                        // Contoh: "40-50" => (40+50)/2 = 45 ; "80" => 80
-                        preg_match_all('/\d+(?:\.\d+)?/', $skor, $matches);
-                        if (!empty($matches[0])) {
-                            $angka = array_map('floatval', $matches[0]);
-                            $total_rekomendasi += array_sum($angka) / count($angka);
-                        }
+        // Pre-load all related data in bulk to eliminate N+1
+        $pendaftaranIds = $pesertaLolos->pluck('id');
+        $allPortofolios = PortofolioCu::whereIn('pendaftaran_id', $pendaftaranIds)
+            ->where('status_validasi', 'Valid')->get()->groupBy('pendaftaran_id');
+        $allPenugasans = PenugasanJuri::whereIn('pendaftaran_id', $pendaftaranIds)->get()->groupBy('pendaftaran_id');
+        $allPenilaians = Penilaian::whereIn('pendaftaran_id', $pendaftaranIds)
+            ->with('kriteria')->get()->groupBy('pendaftaran_id');
+
+        // Helper to compute total rekomendasi from portofolios
+        $hitungRekomendasi = function ($portofolios) {
+            $total = 0;
+            foreach ($portofolios as $porto) {
+                $skor = $porto->skor_rekomendasi;
+                if ($skor) {
+                    preg_match_all('/\d+(?:\.\d+)?/', $skor, $matches);
+                    if (!empty($matches[0])) {
+                        $angka = array_map('floatval', $matches[0]);
+                        $total += array_sum($angka) / count($angka);
                     }
                 }
-                if ($total_rekomendasi > 100) $total_rekomendasi = 100;
-                // Catatan: tidak ada lantai minimal untuk CU Berkas (mengikuti nilai portofolio apa adanya).
+            }
+            return min($total, 100);
+        };
 
-                // Isi A01 hanya bila juri BELUM mengisi (firstOrCreate),
-                // agar penyesuaian +/-10 yang dilakukan juri tidak tertimpa.
-                $penugasans = \App\Models\PenugasanJuri::where('pendaftaran_id', $pendaftaran->id)->get();
-                foreach ($penugasans as $penugasan) {
-                    Penilaian::firstOrCreate(
-                        [
-                            'juri_id' => $penugasan->juri_id,
-                            'pendaftaran_id' => $pendaftaran->id,
-                            'kriteria_id' => $a01KriteriaId
-                        ],
-                        [
-                            'nilai_input' => $total_rekomendasi
-                        ]
-                    );
-                }
+        // --- 1. OTOMATISASI DAN VERIFIKASI NILAI KRITERIA A01 ---
+        foreach ($pesertaLolos as $pendaftaran) {
+            $pendaftaran->load('mahasiswa');
+            $jenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
+            $kriteriasMap = ($kriteriasByJenjang->get($jenjangId, collect()) ?: $kriteriasByJenjang->get(1, collect()))->keyBy('kode_kriteria');
+            if (!isset($kriteriasMap['A01'])) continue;
+            $a01KriteriaId = $kriteriasMap['A01']->id;
+            $portofolios = $allPortofolios->get($pendaftaran->id, collect());
+            $total_rekomendasi = $hitungRekomendasi($portofolios);
+            $penugasans = $allPenugasans->get($pendaftaran->id, collect());
+            foreach ($penugasans as $penugasan) {
+                Penilaian::firstOrCreate(
+                    ['juri_id' => $penugasan->juri_id, 'pendaftaran_id' => $pendaftaran->id, 'kriteria_id' => $a01KriteriaId],
+                    ['nilai_input' => $total_rekomendasi]
+                );
             }
         }
 
         // Otomatisasi A03 (BI Video) disamakan dengan F03 jika kosong
-        if (isset($kriteriasMap['A03']) && isset($kriteriasMap['F03'])) {
+        foreach ($pesertaLolos as $pendaftaran) {
+            $pendaftaran->load('mahasiswa');
+            $jenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
+            $kriteriasMap = ($kriteriasByJenjang->get($jenjangId, collect()) ?: $kriteriasByJenjang->get(1, collect()))->keyBy('kode_kriteria');
+            if (!isset($kriteriasMap['A03']) || !isset($kriteriasMap['F03'])) continue;
             $a03Id = $kriteriasMap['A03']->id;
             $f03Id = $kriteriasMap['F03']->id;
-            foreach ($pesertaLolos as $pendaftaran) {
-                $penugasans = \App\Models\PenugasanJuri::where('pendaftaran_id', $pendaftaran->id)->get();
-                foreach ($penugasans as $penugasan) {
+            $penugasans = $allPenugasans->get($pendaftaran->id, collect());
+            foreach ($penugasans as $penugasan) {
                     $existingF03Val = Penilaian::where('juri_id', $penugasan->juri_id)
                         ->where('pendaftaran_id', $pendaftaran->id)
                         ->where('kriteria_id', $f03Id)
                         ->value('nilai_input');
-
                     if ($existingF03Val !== null) {
                         Penilaian::updateOrCreate(
-                            [
-                                'juri_id' => $penugasan->juri_id,
-                                'pendaftaran_id' => $pendaftaran->id,
-                                'kriteria_id' => $a03Id
-                            ],
-                            [
-                                'nilai_input' => $existingF03Val
-                            ]
+                            ['juri_id' => $penugasan->juri_id, 'pendaftaran_id' => $pendaftaran->id, 'kriteria_id' => $a03Id],
+                            ['nilai_input' => $existingF03Val]
                         );
                     }
                 }
             }
-        }
 
-        // Cek apakah semua juri sudah memberi nilai (Requirement 11)
+        // Cek apakah semua juri sudah memberi nilai
         foreach ($pesertaLolos as $pendaftaran) {
             $jumlahJuriDitugaskan = $pendaftaran->penugasanJuri->count();
-            // Ambil jumlah juri unik yang sudah memberi nilai untuk pendaftaran ini
-            $jumlahJuriMemberiNilai = Penilaian::where('pendaftaran_id', $pendaftaran->id)
-                ->distinct('juri_id')->count('juri_id');
+            $penilaiansPeserta = $allPenilaians->get($pendaftaran->id, collect());
+            $jumlahJuriMemberiNilai = $penilaiansPeserta->pluck('juri_id')->unique()->count();
 
             if ($jumlahJuriMemberiNilai < $jumlahJuriDitugaskan && $jumlahJuriDitugaskan > 0) {
                 return back()->with('error', 'Proses gagal. Masih ada juri yang belum memberikan penilaian lengkap untuk peserta: ' . $pendaftaran->mahasiswa->user->nama_lengkap);
@@ -149,12 +221,9 @@ class PerhitunganController extends Controller
         }
 
         foreach ($pesertaLolos as $pendaftaran) {
-            $penilaianList = Penilaian::where('pendaftaran_id', $pendaftaran->id)
-                ->with('kriteria')->get();
-
+            $penilaianList = $allPenilaians->get($pendaftaran->id, collect());
             if ($penilaianList->isEmpty()) continue;
 
-            // Rata-rata per juri dulu, lalu rata-rata semua nilai per kriteria (STEP 4)
             $nilaiPerKriteriaRaw = [];
             foreach ($penilaianList as $p) {
                 if ($p->kriteria) {
@@ -167,88 +236,177 @@ class PerhitunganController extends Controller
                 $nilaiPerKriteria[$kode] = array_sum($nilaiArr) / count($nilaiArr);
             }
 
-            // Hitung actual scale 1-10, GAP, dan GAP Weight
             $weights = [];
-            foreach ($kriterias as $k) {
+            $jenjangId = $pendaftaran->mahasiswa->jenjang_id ?? 1;
+            $kriteriasJenjang = $kriteriasByJenjang->get($jenjangId, collect());
+            if ($kriteriasJenjang->isEmpty()) {
+                $kriteriasJenjang = $kriteriasByJenjang->get(1, collect());
+            }
+            $bobotMap = $kriteriasJenjang->pluck('bobot', 'kode_kriteria');
+
+            foreach ($kriteriasJenjang as $k) {
                 $avgScore = $nilaiPerKriteria[$k->kode_kriteria] ?? 0;
-                // STEP 5: Rata-rata dikalikan Bobot Kriteria
                 $weightedScore = $avgScore * ($k->bobot / 100.0);
-                // STEP 7: Konversi ke skala 1-10
                 $actual = $this->convertToScale10($weightedScore);
-                $target = $k->nilai_target; // 10
+                $target = $k->nilai_target;
                 $gap = $actual - $target;
-                // STEP 9: Konversi Bobot GAP
                 $weights[$k->kode_kriteria] = $this->getGapWeight($gap);
             }
 
-            // Hitung Nilai Sementara (Hasil Penilaian Sementara) skala 60-100
             $a01 = $nilaiPerKriteria['A01'] ?? 0;
             $a02 = $nilaiPerKriteria['A02'] ?? 0;
             $a03 = $nilaiPerKriteria['A03'] ?? 0;
-            $awalSementara = ($a01 * 0.35) + ($a02 * 0.35) + ($a03 * 0.30);
+            $awalSementara = ($a01 * ($bobotMap['A01'] ?? 35) / 100)
+                           + ($a02 * ($bobotMap['A02'] ?? 35) / 100)
+                           + ($a03 * ($bobotMap['A03'] ?? 30) / 100);
 
             $f01 = $nilaiPerKriteria['F01'] ?? 0;
             $f02 = $nilaiPerKriteria['F02'] ?? 0;
             $f03 = $nilaiPerKriteria['F03'] ?? 0;
-            $finalSementara = ($f01 * 0.35) + ($f02 * 0.35) + ($f03 * 0.30);
+            $finalSementara = ($f01 * ($bobotMap['F01'] ?? 35) / 100)
+                            + ($f02 * ($bobotMap['F02'] ?? 35) / 100)
+                            + ($f03 * ($bobotMap['F03'] ?? 30) / 100);
 
             $nilaiSementara = (0.3 * $awalSementara) + (0.7 * $finalSementara);
 
-            // NCF (Core Factor — 70%): CU Akhir (F01), GK Akhir (F02), BI Akhir (F03)
             $ncf = ($weights['F01'] + $weights['F02'] + $weights['F03']) / 3.0;
-
-            // NSF (Secondary Factor — 30%): CU Awal (A01), GK Awal (A02), BI Awal (A03)
             $nsf = ($weights['A01'] + $weights['A02'] + $weights['A03']) / 3.0;
-
-            // Nilai Akhir (Profile Matching)
             $nilaiTotal = (0.7 * $ncf) + (0.3 * $nsf);
 
-            // Simpan Hasil Penilaian
             HasilPenilaian::updateOrCreate(
                 ['pendaftaran_id' => $pendaftaran->id],
                 [
-                    'skor_awal' => $nsf, // Menyimpan NSF
-                    'skor_final' => $ncf, // Menyimpan NCF
+                    'skor_awal' => $nsf,
+                    'skor_final' => $ncf,
                     'nilai_total' => $nilaiTotal,
                     'nilai_sementara' => $nilaiSementara
                 ]
             );
         }
 
-        // Perangkingan Anti-Duplikat (urutkan total desc, id asc untuk stabilitas)
-        $hasilList = HasilPenilaian::orderByDesc('nilai_total')
+        // Perangkingan per jenjang — setiap jenjang punya Juara 1, 2, 3 sendiri
+        $hasilByJenjang = HasilPenilaian::with('pendaftaran.mahasiswa')
+            ->orderByDesc('nilai_total')
             ->orderBy('id', 'asc')
-            ->get();
-        foreach ($hasilList as $i => $hasil) {
-            $statusJuara = match(true) {
-                $i === 0 => 'Juara 1',
-                $i === 1 => 'Juara 2',
-                $i === 2 => 'Juara 3',
-                default  => 'Tidak Juara',
-            };
-            $hasil->update(['ranking' => $i + 1, 'status_juara' => $statusJuara]);
+            ->get()
+            ->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang_id ?? 1);
+
+        foreach ($hasilByJenjang as $jenjangId => $hasilPerJenjang) {
+            $rank = 1;
+            foreach ($hasilPerJenjang as $hasil) {
+                $statusJuara = match ($rank) {
+                    1 => 'Juara 1',
+                    2 => 'Juara 2',
+                    3 => 'Juara 3',
+                    default => 'Tidak Juara',
+                };
+                $hasil->update(['ranking' => $rank++, 'status_juara' => $statusJuara]);
+            }
         }
 
         $this->notifyAllRole('wr3', 'Perhitungan nilai PILMAPRES telah selesai. Silakan lakukan validasi akhir.', 'info');
         $this->notifyAllRole('mahasiswa', 'Proses penilaian telah selesai. Hasil akhir akan segera diumumkan.', 'info');
 
-        return redirect()->route('admin.perhitungan.hasil')
+        return redirect()->route('admin.perhitungan.index', $request->filled('jenjang_id') ? ['jenjang_id' => $request->jenjang_id] : [])
             ->with('success', 'Perhitungan GAP skala 1-10 selesai. Hasil perangkingan telah diperbarui.');
     }
 
-    public function hasil()
+    public function resetPerhitungan()
     {
-        $hasilList = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.penilaian.kriteria')
-            ->orderBy('ranking')->get();
-        $kriterias = KriteriaPenilaian::all();
-        return view('admin.perhitungan.hasil', compact('hasilList', 'kriterias'));
+        HasilPenilaian::truncate();
+
+        return redirect()->route('admin.perhitungan.index')
+            ->with('success', 'Riwayat perhitungan GAP berhasil dikosongkan.');
     }
 
-    public function export()
+    public function ranking(Request $request)
     {
-        $hasilList = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.penilaian.kriteria')
-            ->orderBy('ranking')->get();
-        $kriterias = KriteriaPenilaian::all();
+        $query = HasilPenilaian::with(
+            'pendaftaran.mahasiswa.user',
+            'pendaftaran.mahasiswa.jenjang',
+            'pendaftaran.penilaian.kriteria',
+            'pendaftaran.penilaian'
+        );
+
+        if ($request->filled('jenjang_id')) {
+            $query->whereHas('pendaftaran.mahasiswa', fn($q) =>
+                $q->where('jenjang_id', $request->jenjang_id)
+            );
+        }
+
+        $hasilList = $query->orderBy('ranking')->get();
+        $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
+
+        $kriterias = KriteriaPenilaian::with('jenjang')->get();
+        $juries = \App\Models\User::where('role', 'juri')->orderBy('id')->get(['id', 'nama_lengkap']);
+
+        $bobotPerJenjang = [];
+        foreach ($kriterias as $k) {
+            $jid = $k->jenjang_id ?? 1;
+            if (!isset($bobotPerJenjang[$jid])) {
+                $bobotPerJenjang[$jid] = [];
+            }
+            $bobotPerJenjang[$jid][$k->kode_kriteria] = $k->bobot;
+        }
+
+        $selectedJenjang = $request->jenjang_id;
+
+        return view('admin.perhitungan.ranking', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang'));
+    }
+
+    public function hasil(Request $request)
+    {
+        $query = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang', 'pendaftaran.penilaian.kriteria', 'pendaftaran.penilaian');
+
+        if ($request->filled('jenjang_id')) {
+            $query->whereHas('pendaftaran.mahasiswa', fn($q) =>
+                $q->where('jenjang_id', $request->jenjang_id)
+            );
+        }
+
+        $hasilList = $query->orderBy('ranking')->get();
+
+        $kriteriasQuery = KriteriaPenilaian::with('jenjang');
+        if ($request->filled('jenjang_id')) {
+            $kriteriasQuery->where('jenjang_id', $request->jenjang_id);
+        }
+        $kriterias = $kriteriasQuery->get();
+
+        $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
+        $juries = \App\Models\User::where('role', 'juri')->orderBy('id')->get(['id', 'nama_lengkap']);
+
+        // Compute bobot map per jenjang: [jenjang_id => [kode_kriteria => bobot]]
+        $bobotPerJenjang = [];
+        foreach ($kriterias as $k) {
+            $jid = $k->jenjang_id ?? 1;
+            if (!isset($bobotPerJenjang[$jid])) {
+                $bobotPerJenjang[$jid] = [];
+            }
+            $bobotPerJenjang[$jid][$k->kode_kriteria] = $k->bobot;
+        }
+
+        $selectedJenjang = $request->jenjang_id;
+        return view('admin.perhitungan.hasil', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang'));
+    }
+
+    public function export(Request $request)
+    {
+        $query = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.penilaian.kriteria');
+
+        if ($request->filled('jenjang_id')) {
+            $query->whereHas('pendaftaran.mahasiswa', fn($q) =>
+                $q->where('jenjang_id', $request->jenjang_id)
+            );
+        }
+
+        $hasilList = $query->orderBy('ranking')->get();
+
+        $kriteriasQuery = KriteriaPenilaian::with('jenjang');
+        if ($request->filled('jenjang_id')) {
+            $kriteriasQuery->where('jenjang_id', $request->jenjang_id);
+        }
+        $kriterias = $kriteriasQuery->get();
+
         $kriteriasMap = $kriterias->pluck('id', 'kode_kriteria');
         // Peta bobot kriteria dari database (kode => bobot persen).
         // Dipakai agar perhitungan di export SELALU sinkron dengan proses() yang
@@ -351,7 +509,7 @@ class PerhitunganController extends Controller
         $sheet2 = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'Data Mahasiswa');
         $spreadsheet->addSheet($sheet2);
         $sheet2->setCellValue('A1', 'NO');
-        $sheet2->setCellValue('B1', 'NIM');
+        $sheet2->setCellValue('B1', 'NPM');
         $sheet2->setCellValue('C1', 'NAMA MAHASISWA');
         $sheet2->setCellValue('D1', 'PROGRAM STUDI');
         $sheet2->setCellValue('E1', 'IPK');
@@ -381,7 +539,7 @@ class PerhitunganController extends Controller
         $sheet3 = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'Input Nilai Juri');
         $spreadsheet->addSheet($sheet3);
         $sheet3->setCellValue('A1', 'NAMA MAHASISWA');
-        $sheet3->setCellValue('B1', 'NIM');
+        $sheet3->setCellValue('B1', 'NPM');
         $sheet3->setCellValue('C1', 'JURI PENILAI');
         $sheet3->setCellValue('D1', 'A01 (CU Berkas)');
         $sheet3->setCellValue('E1', 'A02 (GK Naskah)');
@@ -647,7 +805,7 @@ class PerhitunganController extends Controller
         $sheet9 = new \PhpOffice\PhpSpreadsheet\Worksheet\Worksheet($spreadsheet, 'Ranking');
         $spreadsheet->addSheet($sheet9);
         $sheet9->setCellValue('A1', 'RANKING');
-        $sheet9->setCellValue('B1', 'NIM');
+        $sheet9->setCellValue('B1', 'NPM');
         $sheet9->setCellValue('C1', 'NAMA MAHASISWA');
         $sheet9->setCellValue('D1', 'PROGRAM STUDI');
         $sheet9->setCellValue('E1', 'NILAI SEMENTARA (RAW AVG)');

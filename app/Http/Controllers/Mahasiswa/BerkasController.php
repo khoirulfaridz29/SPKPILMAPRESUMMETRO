@@ -30,10 +30,29 @@ class BerkasController extends Controller
         $persyaratan = \App\Models\Persyaratan::all();
         $portofolios = \App\Models\PortofolioCu::where('pendaftaran_id', $pendaftaran->id)->get();
         $rubriks = \App\Models\RubrikCapaianUnggulan::all();
-        
+
+        // Dynamic rubrik info based on student's jenjang (keyword matching from KRITERIA PENILAIAN)
+        $mahasiswa = \App\Models\Mahasiswa::where('user_id', Auth::id())->first();
+        $studentJenjangId = $mahasiswa->jenjang_id ?? 1;
+        $kriterias = \App\Models\KriteriaPenilaian::where('jenjang_id', $studentJenjangId)->get();
+        $kriteriaNames = $kriterias->pluck('nama_kriteria')->map(fn($n) => strtolower($n));
+
+        $hasNaskah = $kriteriaNames->contains(fn($n) =>
+            str_contains($n, 'naskah') || str_contains($n, 'gagasan kreatif') || str_contains($n, 'produk inovatif')
+        );
+        $hasBi = $kriteriaNames->contains(fn($n) =>
+            str_contains($n, 'bahasa inggris') || str_contains($n, 'bi ')
+        );
+
+        $naskahLabel = \App\Models\RubrikNaskahGk::where('jenjang_id', $studentJenjangId)->value('label');
+        $rubrikNaskahLabel = $naskahLabel ?? ($mahasiswa->jenjang?->kode_jenjang === 'D3' ? 'Produk Inovatif' : 'Gagasan Kreatif');
+
         $activeTab = $request->get('tab', 'dokumen');
 
-        return view('mahasiswa.berkas.index', compact('berkass', 'pendaftaran', 'persyaratan', 'portofolios', 'rubriks', 'activeTab'));
+        return view('mahasiswa.berkas.index', compact(
+            'berkass', 'pendaftaran', 'persyaratan', 'portofolios', 'rubriks', 'activeTab',
+            'rubrikNaskahLabel', 'hasNaskah', 'hasBi'
+        ));
     }
 
     public function store(Request $request)
@@ -82,13 +101,6 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         if (!$pendaftaran) abort(403);
 
-        // Ensure database column is VARCHAR so it can store string ranges (e.g. '30-40') without truncation
-        try {
-            \Illuminate\Support\Facades\DB::statement("ALTER TABLE portofolio_cu MODIFY COLUMN skor_rekomendasi VARCHAR(50) NULL");
-        } catch (\Exception $e) {
-            // Ignore if fails
-        }
-
         $path = $request->file('file')->store('portofolio/' . $pendaftaran->id, 'public');
 
         $rubrik = \App\Models\RubrikCapaianUnggulan::find($request->rubrik_cu_id);
@@ -120,6 +132,9 @@ class BerkasController extends Controller
 
     public function destroy(BerkasPendaftaran $berkas)
     {
+        $pendaftaran = $this->getPendaftaran();
+        abort_if($berkas->pendaftaran_id !== $pendaftaran?->id, 403);
+
         Storage::disk('public')->delete($berkas->file_path);
         $berkas->delete();
         return back()->with('success', 'Berkas berhasil dihapus.');
@@ -128,6 +143,9 @@ class BerkasController extends Controller
     public function destroyPortofolio($id)
     {
         $porto = \App\Models\PortofolioCu::findOrFail($id);
+        $pendaftaran = $this->getPendaftaran();
+        abort_if($porto->pendaftaran_id !== $pendaftaran?->id, 403);
+
         Storage::disk('public')->delete($porto->file_path);
         $porto->delete();
         return redirect()->route('mahasiswa.berkas.index', ['tab' => 'portofolio'])->with('success', 'Portofolio CU berhasil dihapus.');

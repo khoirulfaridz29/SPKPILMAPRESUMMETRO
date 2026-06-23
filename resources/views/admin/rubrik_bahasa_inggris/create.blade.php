@@ -10,6 +10,19 @@
         <form action="{{ route('admin.rubrik-bahasa-inggris.store') }}" method="POST">
             @csrf
             <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    <option value="">Pilih Jenjang</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}">{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Label Tampilan <small class="text-muted">(cth: Bahasa Inggris)</small></label>
+                <input type="text" name="label" class="form-control" placeholder="Kosongkan untuk default">
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-bold">Field Penilaian</label>
                 <input type="text" name="field" class="form-control" placeholder="Contoh: CONTENT" required>
             </div>

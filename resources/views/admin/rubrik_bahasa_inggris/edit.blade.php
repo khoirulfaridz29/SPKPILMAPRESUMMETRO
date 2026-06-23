@@ -10,6 +10,18 @@
         <form action="{{ route('admin.rubrik-bahasa-inggris.update', $rubrik_bahasa_inggri->id) }}" method="POST">
             @csrf @method('PUT')
             <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ $rubrik_bahasa_inggri->jenjang_id == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Label Tampilan <small class="text-muted">(cth: Bahasa Inggris)</small></label>
+                <input type="text" name="label" class="form-control" value="{{ $rubrik_bahasa_inggri->label }}" placeholder="Kosongkan untuk default">
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-bold">Field Penilaian</label>
                 <input type="text" name="field" class="form-control" value="{{ $rubrik_bahasa_inggri->field }}" required>
             </div>

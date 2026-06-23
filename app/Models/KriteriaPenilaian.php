@@ -9,6 +9,7 @@ class KriteriaPenilaian extends Model
     protected $table = 'kriteria_penilaian';
 
     protected $fillable = [
+        'jenjang_id',
         'kode_kriteria',
         'nama_kriteria',
         'jenis_faktor',
@@ -16,4 +17,9 @@ class KriteriaPenilaian extends Model
         'bobot',
         'tipe_faktor',
     ];
+
+    public function jenjang()
+    {
+        return $this->belongsTo(Jenjang::class);
+    }
 }

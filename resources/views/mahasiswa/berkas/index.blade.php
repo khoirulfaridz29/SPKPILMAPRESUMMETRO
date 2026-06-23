@@ -15,7 +15,7 @@
     </div>
     <form action="{{ route('mahasiswa.pendaftaran.submit') }}" method="POST" class="m-0">
         @csrf
-        <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" onclick="return confirm('Kirim pendaftaran secara final? Data tidak dapat diubah lagi setelah dikirim.')">
+        <button type="submit" class="btn btn-warning px-4 fw-bold shadow-sm" onclick="return confirm('Kirim pendaftaran secara final? Data tidak dapat diubah lagi setelah dikirim.')">
             <i class="fa-solid fa-paper-plane me-1"></i> Kirim Pendaftaran Sekarang
         </button>
     </form>
@@ -49,16 +49,20 @@
         <i class="fa-solid fa-medal me-2"></i> Page 2: Portofolio CU
     </button>
   </li>
+  @if($hasNaskah)
   <li class="nav-item" role="presentation">
     <button class="nav-link {{ $activeTab === 'gagasan' ? 'active' : '' }}" id="gagasan-tab" data-bs-toggle="tab" data-bs-target="#gagasan" type="button" role="tab">
-        <i class="fa-solid fa-lightbulb me-2"></i> Page 3: Gagasan Kreatif
+        <i class="fa-solid fa-lightbulb me-2"></i> Page 3: {{ $rubrikNaskahLabel }}
     </button>
   </li>
+  @endif
+  @if($hasBi)
   <li class="nav-item" role="presentation">
     <button class="nav-link {{ $activeTab === 'video_bi' ? 'active' : '' }}" id="video_bi-tab" data-bs-toggle="tab" data-bs-target="#video_bi" type="button" role="tab">
         <i class="fa-solid fa-video me-2"></i> Page 4: Video BI
     </button>
   </li>
+  @endif
 </ul>
 
 <div class="tab-content" id="berkasTabContent">
@@ -96,14 +100,15 @@
             <div class="card">
                 <div class="card-header bg-light fw-bold">Dokumen Terupload</div>
                 <div class="card-body p-0">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light"><tr><th class="ps-3">Nama Berkas</th><th class="text-center">Status</th><th class="text-center">Aksi</th></tr></thead>
+                    <div class="table-responsive">
+                    <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">
+                        <thead><tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb"><th style="padding:0.6rem 0 0.6rem 0.75rem;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem">Nama Berkas</th><th style="padding:0.6rem 0;text-align:center;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Status</th><th style="width:64px;padding:0.6rem 0.5rem 0.6rem 0;text-align:center;font-weight:600;color:#6b7280;font-size:0.72rem">Aksi</th></tr></thead>
                         <tbody>
                             @forelse($berkass->whereIn('nama_berkas', ['KTP', 'KTM', 'Transkrip Nilai', 'Surat Pengantar Fakultas']) as $b)
-                            <tr>
-                                <td class="ps-3 fw-semibold">{{ $b->nama_berkas }}</td>
-                                <td class="text-center"><span class="badge bg-secondary">{{ $b->status_validasi }}</span></td>
-                                <td class="text-center">
+                            <tr style="border-bottom:1px solid #f3f4f6">
+                                <td style="padding:0.7rem 0 0.7rem 0.75rem;font-weight:600">{{ $b->nama_berkas }}</td>
+                                <td style="padding:0.7rem 0;text-align:center"><span class="badge bg-secondary">{{ $b->status_validasi }}</span></td>
+                                <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                                     <a href="{{ asset('storage/' . $b->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
                                     @if(!$pendaftaran->is_submitted)
                                     <form action="{{ route('mahasiswa.berkas.destroy', $b) }}" method="POST" class="d-inline">
@@ -114,10 +119,11 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="3" class="text-center py-4 text-muted">Belum ada dokumen pendukung.</td></tr>
+                            <tr><td colspan="3" style="padding:2rem;text-align:center;color:#9ca3af">Belum ada dokumen pendukung.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,20 +186,21 @@
             <div class="card">
                 <div class="card-header bg-light fw-bold">Daftar Sertifikat Terupload</div>
                 <div class="card-body p-0">
-                    <table class="table table-hover mb-0 align-middle">
-                        <thead class="table-light"><tr><th class="ps-3">Prestasi</th><th>Jenjang</th><th class="text-center">Aksi</th></tr></thead>
+                    <div class="table-responsive">
+                    <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">
+                        <thead><tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb"><th style="padding:0.6rem 0 0.6rem 0.75rem;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem">Prestasi</th><th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Jenjang</th><th style="width:64px;padding:0.6rem 0.5rem 0.6rem 0;text-align:center;font-weight:600;color:#6b7280;font-size:0.72rem">Aksi</th></tr></thead>
                         <tbody>
                             @forelse($portofolios as $porto)
-                            <tr>
-                                <td class="ps-3">
+                            <tr style="border-bottom:1px solid #f3f4f6">
+                                <td style="padding:0.7rem 0 0.7rem 0.75rem">
                                     <div class="fw-bold">{{ $porto->nama_prestasi }}</div>
                                     <div class="small text-muted">{{ $porto->rubrikCu->wujud_capaian_unggulan }}</div>
                                     @if($porto->status_validasi === 'Valid' && $porto->skor_rekomendasi)
                                         <div class="mt-1"><span class="badge bg-success">Skor Rekomendasi: {{ $porto->skor_rekomendasi }}</span></div>
                                     @endif
                                 </td>
-                                <td><span class="badge bg-info text-dark">{{ $porto->kategori_jenjang }}</span></td>
-                                <td class="text-center">
+                                <td style="padding:0.7rem 0"><span class="badge bg-info text-dark">{{ $porto->kategori_jenjang }}</span></td>
+                                <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                                     <a href="{{ asset('storage/' . $porto->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
                                     @if(!$pendaftaran->is_submitted)
                                     <form action="{{ route('mahasiswa.berkas.portofolio.destroy', $porto->id) }}" method="POST" class="d-inline">
@@ -204,30 +211,32 @@
                                 </td>
                             </tr>
                             @empty
-                            <tr><td colspan="3" class="text-center py-4 text-muted">Belum ada portofolio CU.</td></tr>
+                            <tr><td colspan="3" style="padding:2rem;text-align:center;color:#9ca3af">Belum ada portofolio CU.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
   </div>
 
-  <!-- TAB 3: Gagasan Kreatif -->
+  <!-- TAB 3: {{ $rubrikNaskahLabel }} -->
+  @if($hasNaskah)
   <div class="tab-pane fade {{ $activeTab === 'gagasan' ? 'show active' : '' }}" id="gagasan" role="tabpanel">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white"><i class="fa-solid fa-lightbulb me-2"></i> Upload Gagasan Kreatif</div>
+                <div class="card-header bg-primary text-white"><i class="fa-solid fa-lightbulb me-2"></i> Upload {{ $rubrikNaskahLabel }}</div>
                 <div class="card-body text-center p-5">
                     @php
-                        $gk = $berkass->where('nama_berkas', 'Naskah Gagasan Kreatif')->first();
+                        $gk = $berkass->whereIn('nama_berkas', ['Naskah Gagasan Kreatif', 'Naskah Produk Inovatif'])->first();
                     @endphp
 
                     @if($gk)
                         <i class="fa-solid fa-file-pdf fa-4x text-danger mb-3"></i>
-                        <h5 class="fw-bold">Naskah Gagasan Kreatif Tersimpan</h5>
+                        <h5 class="fw-bold">{{ $rubrikNaskahLabel }} Tersimpan</h5>
                         <p class="text-muted">Status Validasi: <span class="badge bg-secondary">{{ $gk->status_validasi }}</span></p>
                         <div class="d-flex justify-content-center gap-2 mt-4">
                             <a href="{{ asset('storage/' . $gk->file_path) }}" target="_blank" class="btn btn-primary"><i class="fa-solid fa-eye me-2"></i> Lihat File</a>
@@ -244,11 +253,11 @@
                             <input type="hidden" name="tab" value="gagasan">
                             <input type="hidden" name="nama_berkas" value="Naskah Gagasan Kreatif">
                             <div class="mb-4 text-start">
-                                <label class="form-label fw-bold">File Naskah GK (PDF - Max 5MB)</label>
+                                <label class="form-label fw-bold">File {{ $rubrikNaskahLabel }} (PDF - Max 5MB)</label>
                                 <input type="file" name="file" class="form-control form-control-lg" accept=".pdf" required>
                             </div>
                             <button type="submit" class="btn btn-primary btn-lg w-100" {{ $pendaftaran->is_submitted ? 'disabled' : '' }}>
-                                <i class="fa-solid fa-upload me-2"></i> Simpan Gagasan Kreatif
+                                <i class="fa-solid fa-upload me-2"></i> Simpan {{ $rubrikNaskahLabel }}
                             </button>
                         </form>
                     @endif
@@ -257,8 +266,10 @@
         </div>
     </div>
   </div>
+  @endif
 
   <!-- TAB 4: Video Bahasa Inggris -->
+  @if($hasBi)
   <div class="tab-pane fade {{ $activeTab === 'video_bi' ? 'show active' : '' }}" id="video_bi" role="tabpanel">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -301,6 +312,7 @@
         </div>
     </div>
   </div>
+  @endif
 
 </div>
 @endsection

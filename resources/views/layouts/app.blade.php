@@ -5,13 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Pendukung Keputusan PILMAPRES UM Metro</title>
     <link rel="icon" href="{{ asset('assets/logoummetro.webp') }}" type="image/webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     <style>
+        :root {
+            --primary: #1a3c7a;
+            --primary-light: #2a6df0;
+            --primary-dark: #0f2550;
+            --accent: #5b9bd5;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --bg: #f8fafc;
+            --border: #e2e8f0;
+            --radius: 10px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
         body {
             font-family: 'Montserrat', sans-serif;
             background-color: #f8f9fa;
@@ -31,7 +51,7 @@
         }
         .navbar-brand {
             font-weight: 700;
-            color: #0d6efd !important;
+            color: var(--primary) !important;
         }
         .sidebar {
             min-height: calc(100vh - 56px);
@@ -43,11 +63,11 @@
             font-weight: 500;
             padding: 10px 20px;
             margin-bottom: 5px;
-            border-radius: 5px;
+            border-radius: var(--radius-sm);
         }
         .sidebar .nav-link:hover, .sidebar .nav-link.active {
             background-color: #e9ecef;
-            color: #0d6efd;
+            color: var(--primary);
         }
         .sidebar .nav-link i {
             width: 24px;
@@ -58,7 +78,7 @@
         .card {
             border: none;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border-radius: 10px;
+            border-radius: var(--radius);
         }
     </style>
 </head>
@@ -93,12 +113,15 @@
                             </ul>
                         </li>
                     @else
+                        @php $regJadwal = \App\Models\Jadwal::where('kegiatan', 'like', '%Pendaftaran%')->first(); $regBuka = $regJadwal && now()->between(\Carbon\Carbon::parse($regJadwal->tanggal_mulai), \Carbon\Carbon::parse($regJadwal->tanggal_selesai)); @endphp
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('login') }}">Login</a>
                         </li>
+                        @if($regBuka)
                         <li class="nav-item">
                             <a class="nav-link btn btn-primary text-white ms-2 px-3" href="{{ route('register') }}">Daftar Mahasiswa</a>
                         </li>
+                        @endif
                     @endauth
                 </ul>
             </div>
@@ -230,14 +253,14 @@
 
             @if($errors->any())
                 @php
-                    $errList = implode('', array_map(function($err) {
-                        return '<li class="list-group-item list-group-item-danger border-0 py-1 px-0 text-start small"><i class="fa-solid fa-circle-exclamation me-2 text-danger"></i>' . e($err) . '</li>';
-                    }, $errors->all()));
+                    $errorItems = collect($errors->all())->map(fn($err) =>
+                        '<li class="list-group-item list-group-item-danger border-0 py-1 px-0 text-start small"><i class="fa-solid fa-circle-exclamation me-2 text-danger"></i>' . e($err) . '</li>'
+                    )->implode('');
                 @endphp
                 Swal.fire({
                     icon: 'error',
                     title: 'Kesalahan Input!',
-                    html: '<ul class="list-group list-group-flush mb-0 bg-transparent">{!! addslashes($errList) !!}</ul>',
+                    html: '<ul class="list-group list-group-flush mb-0 bg-transparent">{{ $errorItems }}</ul>',
                     confirmButtonColor: '#dc3545',
                     customClass: { confirmButton: 'btn btn-danger rounded-pill px-4' },
                     buttonsStyling: false

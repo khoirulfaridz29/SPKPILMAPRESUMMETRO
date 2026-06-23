@@ -13,6 +13,14 @@
     <div class="card-body">
         <form action="{{ route('admin.rubrik-cu.update', $rubrik->id) }}" method="POST">
             @csrf @method('PUT')
+            <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ $rubrik->jenjang_id == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label class="form-label">Bidang</label>

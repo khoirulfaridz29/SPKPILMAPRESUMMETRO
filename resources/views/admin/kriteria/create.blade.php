@@ -14,6 +14,16 @@
         <form action="{{ route('admin.kriteria.store') }}" method="POST">
             @csrf
             <div class="mb-3">
+                <label class="form-label fw-semibold">Jenjang</label>
+                <select name="jenjang_id" class="form-select @error('jenjang_id') is-invalid @enderror" required>
+                    <option value="">-- Pilih Jenjang --</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ old('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+                @error('jenjang_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-semibold">Kode Kriteria</label>
                 <input type="text" name="kode_kriteria" class="form-control @error('kode_kriteria') is-invalid @enderror"
                     value="{{ old('kode_kriteria') }}" placeholder="Cth: K1" required>

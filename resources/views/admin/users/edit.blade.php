@@ -19,6 +19,11 @@
                     value="{{ old('nama_lengkap', $user->nama_lengkap) }}" required>
             </div>
             <div class="mb-3">
+                <label class="form-label fw-semibold">NIDN/NIP</label>
+                <input type="text" name="nidn" class="form-control"
+                    value="{{ old('nidn', $user->nidn) }}" placeholder="Kosongkan jika tidak ada">
+            </div>
+            <div class="mb-3">
                 <label class="form-label fw-semibold">Username</label>
                 <input type="text" name="username" class="form-control"
                     value="{{ old('username', $user->username) }}" required>

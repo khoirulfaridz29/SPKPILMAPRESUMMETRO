@@ -3,61 +3,46 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RubrikBahasaInggrisRequest;
 use App\Models\RubrikBahasaInggris;
 use Illuminate\Http\Request;
+use App\Models\Jenjang;
 
 class RubrikBahasaInggrisController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rubriks = RubrikBahasaInggris::all();
-        return view('admin.rubrik_bahasa_inggris.index', compact('rubriks'));
+        $query = RubrikBahasaInggris::query();
+        if ($request->filled('jenjang_id')) {
+            $query->where('jenjang_id', $request->jenjang_id);
+        }
+        $rubriks = $query->with('jenjang')->get();
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_bahasa_inggris.index', compact('rubriks', 'jenjangs'));
     }
 
     public function create()
     {
-        return view('admin.rubrik_bahasa_inggris.create');
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_bahasa_inggris.create', compact('jenjangs'));
     }
 
-    public function store(Request $request)
+    public function store(RubrikBahasaInggrisRequest $request)
     {
-        $request->validate([
-            'field' => 'required|string|max:255',
-            'excellent_score' => 'required|string|max:50',
-            'excellent_criteria' => 'required|string',
-            'good_score' => 'required|string|max:50',
-            'good_criteria' => 'required|string',
-            'fair_score' => 'required|string|max:50',
-            'fair_criteria' => 'required|string',
-            'poor_score' => 'required|string|max:50',
-            'poor_criteria' => 'required|string',
-        ]);
-
-        RubrikBahasaInggris::create($request->all());
+        RubrikBahasaInggris::create($request->validated());
 
         return redirect()->route('admin.rubrik-bahasa-inggris.index')->with('success', 'Rubrik Bahasa Inggris berhasil ditambahkan.');
     }
 
     public function edit(RubrikBahasaInggris $rubrik_bahasa_inggri)
     {
-        return view('admin.rubrik_bahasa_inggris.edit', compact('rubrik_bahasa_inggri'));
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_bahasa_inggris.edit', compact('rubrik_bahasa_inggri', 'jenjangs'));
     }
 
-    public function update(Request $request, RubrikBahasaInggris $rubrik_bahasa_inggri)
+    public function update(RubrikBahasaInggrisRequest $request, RubrikBahasaInggris $rubrik_bahasa_inggri)
     {
-        $request->validate([
-            'field' => 'required|string|max:255',
-            'excellent_score' => 'required|string|max:50',
-            'excellent_criteria' => 'required|string',
-            'good_score' => 'required|string|max:50',
-            'good_criteria' => 'required|string',
-            'fair_score' => 'required|string|max:50',
-            'fair_criteria' => 'required|string',
-            'poor_score' => 'required|string|max:50',
-            'poor_criteria' => 'required|string',
-        ]);
-
-        $rubrik_bahasa_inggri->update($request->all());
+        $rubrik_bahasa_inggri->update($request->validated());
 
         return redirect()->route('admin.rubrik-bahasa-inggris.index')->with('success', 'Rubrik Bahasa Inggris berhasil diperbarui.');
     }

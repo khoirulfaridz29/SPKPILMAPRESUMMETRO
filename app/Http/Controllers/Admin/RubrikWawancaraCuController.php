@@ -3,30 +3,33 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RubrikWawancaraCuRequest;
 use App\Models\RubrikWawancaraCu;
 use Illuminate\Http\Request;
+use App\Models\Jenjang;
 
 class RubrikWawancaraCuController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rubriks = RubrikWawancaraCu::all();
-        return view('admin.rubrik_wawancara_cu.index', compact('rubriks'));
+        $query = RubrikWawancaraCu::query();
+        if ($request->filled('jenjang_id')) {
+            $query->where('jenjang_id', $request->jenjang_id);
+        }
+        $rubriks = $query->with('jenjang')->get();
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_wawancara_cu.index', compact('rubriks', 'jenjangs'));
     }
 
     public function create()
     {
-        return view('admin.rubrik_wawancara_cu.create');
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_wawancara_cu.create', compact('jenjangs'));
     }
 
-    public function store(Request $request)
+    public function store(RubrikWawancaraCuRequest $request)
     {
-        $request->validate([
-            'kriteria_penilaian' => 'required|string|max:255',
-            'bobot' => 'required|numeric|min:1',
-        ]);
-
-        RubrikWawancaraCu::create($request->all());
+        RubrikWawancaraCu::create($request->validated());
 
         return redirect()->route('admin.rubrik-wawancara-cu.index')->with('success', 'Rubrik Wawancara CU berhasil ditambahkan.');
     }
@@ -34,18 +37,14 @@ class RubrikWawancaraCuController extends Controller
     public function edit($id)
     {
         $rubrik = RubrikWawancaraCu::findOrFail($id);
-        return view('admin.rubrik_wawancara_cu.edit', compact('rubrik'));
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_wawancara_cu.edit', compact('rubrik', 'jenjangs'));
     }
 
-    public function update(Request $request, $id)
+    public function update(RubrikWawancaraCuRequest $request, $id)
     {
         $rubrik = RubrikWawancaraCu::findOrFail($id);
-        $request->validate([
-            'kriteria_penilaian' => 'required|string|max:255',
-            'bobot' => 'required|numeric|min:1',
-        ]);
-
-        $rubrik->update($request->all());
+        $rubrik->update($request->validated());
 
         return redirect()->route('admin.rubrik-wawancara-cu.index')->with('success', 'Rubrik Wawancara CU berhasil diperbarui.');
     }

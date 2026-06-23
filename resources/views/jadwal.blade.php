@@ -3,8 +3,8 @@
 @section('custom-css')
 <style>
     .page-header {
-        background-color: #1e40af !important;
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+        background-color: var(--primary) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         position: relative;
         overflow: hidden;
     }
@@ -59,7 +59,7 @@
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background-color: #3b82f6;
+        background-color: var(--primary-light);
         border: 2px solid white;
         box-shadow: 0 0 0 2px #bfdbfe;
     }
@@ -69,14 +69,14 @@
     }
     .timeline-date {
         font-weight: 700;
-        color: #3b82f6;
+        color: var(--primary-light);
         font-size: 14px;
         margin-bottom: 5px;
     }
     .timeline-content {
         background-color: white;
         padding: 20px;
-        border-radius: 10px;
+        border-radius: var(--radius);
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         border: 1px solid #f1f5f9;
     }

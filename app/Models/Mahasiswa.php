@@ -13,6 +13,7 @@ class Mahasiswa extends Model
 
     protected $fillable = [
         'user_id',
+        'jenjang_id',
         'nim',
         'program_studi',
         'ipk',
@@ -59,5 +60,10 @@ class Mahasiswa extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function jenjang()
+    {
+        return $this->belongsTo(Jenjang::class);
     }
 }

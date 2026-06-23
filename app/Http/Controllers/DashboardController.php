@@ -10,6 +10,7 @@ use App\Models\KriteriaPenilaian;
 use App\Models\Mahasiswa;
 use App\Models\HasilPenilaian;
 use App\Models\PenugasanJuri;
+use App\Models\Jadwal;
 
 class DashboardController extends Controller
 {
@@ -18,6 +19,9 @@ class DashboardController extends Controller
         $user = Auth::user();
         $role = $user->role;
         $stats = [];
+        $mahasiswaList = collect();
+        $jadwalList = collect();
+        $penugasanList = collect();
 
         if ($role === 'admin') {
             $stats = [
@@ -25,9 +29,32 @@ class DashboardController extends Controller
                 'berkas_lengkap'    => Pendaftaran::query()->where('status_berkas', 'Lengkap')->count('*'),
                 'lolos_tahap1'      => Pendaftaran::query()->where('status_seleksi', 'Lolos Tahap 1')->count('*'),
                 'total_kriteria'    => KriteriaPenilaian::query()->count('*'),
-                'total_juri'        => User::query()->where('role', 'juri')->count('*'),
-                'total_mahasiswa'   => User::query()->where('role', 'mahasiswa')->count('*'),
             ];
+
+            $mahasiswaList = User::query()
+                ->where('role', 'mahasiswa')
+                ->with('mahasiswa.jenjang')
+                ->orderBy('nama_lengkap')
+                ->get()
+                ->map(function ($user) {
+                    $mhs = $user->mahasiswa;
+                    $pd = $mhs ? Pendaftaran::query()->where('mahasiswa_id', $mhs->id)->first() : null;
+                    $status = !$pd ? 'Belum Daftar' : ($pd->status_seleksi === 'Lolos Tahap 1' ? 'Lolos T1' : $pd->status_berkas);
+                    return (object) [
+                        'nama'   => $user->nama_lengkap,
+                        'email'  => $user->email,
+                        'jenjang' => $mhs?->jenjang?->nama_jenjang ?? '—',
+                        'status'  => $status,
+                        'inisial' => strtoupper(substr($user->nama_lengkap, 0, 1)),
+                    ];
+                });
+
+            $jadwalList = Jadwal::query()
+                ->where('tanggal_selesai', '>=', now()->subDays(1))
+                ->orWhereNull('tanggal_selesai')
+                ->orderBy('tanggal_mulai')
+                ->take(4)
+                ->get();
         } elseif ($role === 'mahasiswa') {
             $mahasiswa = Mahasiswa::query()->where('user_id', $user->id)->first();
             $pendaftaran = $mahasiswa
@@ -35,8 +62,45 @@ class DashboardController extends Controller
                 : null;
             $stats = compact('mahasiswa', 'pendaftaran');
         } elseif ($role === 'juri') {
+            $penugasanList = PenugasanJuri::with([
+                'pendaftaran.mahasiswa.user',
+                'pendaftaran.mahasiswa.jenjang',
+            ])
+                ->where('juri_id', $user->id)
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(function ($p) use ($user) {
+                    $m = $p->pendaftaran?->mahasiswa;
+                    $jenjangId = $m?->jenjang_id;
+                    $totalKriteria = $jenjangId
+                        ? \App\Models\KriteriaPenilaian::where('jenjang_id', $jenjangId)->count()
+                        : 0;
+                    $scoredKriteria = $totalKriteria > 0
+                        ? \App\Models\Penilaian::where('juri_id', $user->id)
+                            ->where('pendaftaran_id', $p->pendaftaran_id)
+                            ->whereIn('kriteria_id', function ($q) use ($jenjangId) {
+                                $q->select('id')->from('kriteria_penilaian')->where('jenjang_id', $jenjangId);
+                            })
+                            ->distinct('kriteria_id')
+                            ->count('kriteria_id')
+                        : 0;
+                    return (object) [
+                        'id'       => $p->pendaftaran_id,
+                        'nama'     => $m?->user?->nama_lengkap ?? '-',
+                        'nim'      => $m?->nim ?? '-',
+                        'prodi'    => $m?->parsed_prodi ?? '-',
+                        'jenjang'  => $m?->jenjang?->kode_jenjang ?? '-',
+                        'inisial'  => strtoupper(substr($m?->user?->nama_lengkap ?? '?', 0, 1)),
+                        'selesai'  => $scoredKriteria >= $totalKriteria,
+                    ];
+                });
             $totalTugas = PenugasanJuri::query()->where('juri_id', $user->id)->count('*');
-            $stats = ['total_tugas' => $totalTugas];
+            $totalSelesai = $penugasanList->where('selesai', true)->count();
+            $stats = [
+                'total_tugas'   => $totalTugas,
+                'total_selesai' => $totalSelesai,
+            ];
         } elseif ($role === 'wr3') {
             $stats = [
                 'total_rekap'    => \App\Models\RekapTahap1::query()->count('*'),
@@ -50,7 +114,10 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        return view('dashboard.index', compact('role', 'stats', 'notifications'));
+        return view('dashboard.index', compact(
+            'role', 'stats', 'notifications',
+            'mahasiswaList', 'jadwalList', 'penugasanList'
+        ));
     }
 
     public function markAsRead($id)

@@ -7,20 +7,45 @@ use App\Models\Pendaftaran;
 use App\Models\RekapTahap1;
 use App\Models\PenugasanJuri;
 use App\Models\User;
+use App\Models\Jenjang;
 use Illuminate\Http\Request;
 
 class RekapController extends Controller
 {
     use \App\Traits\Notifiable;
 
-    public function index()
+    public function index(Request $request)
     {
-        $rekaps = RekapTahap1::with('pendaftaran.mahasiswa.user')->latest()->get();
-        return view('admin.rekap.index', compact('rekaps'));
+        $query = RekapTahap1::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang');
+
+        if ($request->filled('tahun')) {
+            $query->whereHas('pendaftaran', fn($q) =>
+                $q->whereYear('tanggal_daftar', $request->tahun)
+            );
+        }
+
+        $rekaps = $query->latest()->get();
+        $jenjangList = Jenjang::orderBy('id')->get();
+        $grouped = $rekaps->groupBy(fn($r) => $r->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+
+        $years = RekapTahap1::join('pendaftaran', 'rekap_tahap_1.pendaftaran_id', '=', 'pendaftaran.id')
+            ->selectRaw('YEAR(pendaftaran.tanggal_daftar) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $semuaTervalidasi = $rekaps->isNotEmpty() && $rekaps->every(fn($r) => $r->status_laporan === 'Divalidasi');
+
+        return view('admin.rekap.index', compact('grouped', 'jenjangList', 'years', 'semuaTervalidasi'));
     }
 
     public function lolos(Pendaftaran $pendaftaran)
     {
+        $rekap = $pendaftaran->rekap;
+        if (!$rekap || $rekap->status_laporan !== 'Divalidasi') {
+            return back()->with('error', 'Peserta belum divalidasi WR3. Silakan tunggu validasi WR3 terlebih dahulu.');
+        }
+
         $pendaftaran->update([
             'status_seleksi' => 'Lolos Tahap 1',
             'status_berkas' => 'Lengkap'
@@ -51,11 +76,23 @@ class RekapController extends Controller
 
     public function penugasan()
     {
-        $pesertaLolos = Pendaftaran::with('mahasiswa.user')
-            ->where('status_seleksi', 'Lolos Tahap 1')->get();
+        $pesertaLolos = Pendaftaran::with('mahasiswa.user', 'mahasiswa.jenjang', 'rekap')
+            ->where('status_seleksi', 'Lolos Tahap 1')
+            ->whereHas('rekap', fn($q) => $q->where('status_laporan', 'Divalidasi'))
+            ->get();
         $juris = User::where('role', 'juri')->get();
-        $penugasans = PenugasanJuri::with('juri', 'pendaftaran.mahasiswa.user')->get();
-        return view('admin.rekap.penugasan', compact('pesertaLolos', 'juris', 'penugasans'));
+        $penugasans = PenugasanJuri::with('juri', 'pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang')->get();
+
+        $penugasanPerJuri = $juris->mapWithKeys(function ($juri) use ($penugasans) {
+            $items = $penugasans->where('juri_id', $juri->id);
+            return [$juri->id => [
+                'juri' => $juri,
+                'peserta' => $items,
+                'total' => $items->count(),
+            ]];
+        });
+
+        return view('admin.rekap.penugasan', compact('pesertaLolos', 'juris', 'penugasans', 'penugasanPerJuri'));
     }
 
     public function storePenugasan(Request $request)

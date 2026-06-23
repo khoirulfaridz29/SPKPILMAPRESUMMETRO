@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Admin\KriteriaController;
+use App\Http\Controllers\Admin\JenjangController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\Admin\PendaftaranAdminController;
 use App\Http\Controllers\Admin\RekapController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\PerhitunganController;
 use App\Http\Controllers\Admin\JadwalController;
 use App\Http\Controllers\Admin\PersyaratanController;
 use App\Http\Controllers\Admin\PengumumanController;
+use App\Http\Controllers\Admin\PanduanController;
 use App\Http\Controllers\Mahasiswa\PendaftaranController;
 use App\Http\Controllers\Mahasiswa\BerkasController;
 use App\Http\Controllers\Juri\PenilaianController;
@@ -20,58 +22,23 @@ use App\Http\Controllers\WR3\RekomendaciController;
 // ============================================
 // PUBLIC ROUTES
 // ============================================
-Route::get('/', function() {
-    $jadwal = \App\Models\Jadwal::orderBy('tanggal_mulai', 'asc')->get();
-    $pengumuman = \App\Models\Pengumuman::orderBy('tanggal_publish', 'desc')->limit(3)->get();
-    return view('welcome', compact('jadwal', 'pengumuman'));
-})->name('beranda');
-
-Route::get('/informasi', function() {
-    $persyaratan = \App\Models\Persyaratan::all();
-    return view('informasi', compact('persyaratan'));
-})->name('informasi');
-
-Route::get('/jadwal', function() {
-    $jadwal = \App\Models\Jadwal::orderBy('tanggal_mulai', 'asc')->get();
-    return view('jadwal', compact('jadwal'));
-})->name('jadwal');
-
-Route::get('/pengumuman', function() {
-    $pengumuman = \App\Models\Pengumuman::orderBy('tanggal_publish', 'desc')->get();
-    return view('pengumuman', compact('pengumuman'));
-})->name('pengumuman');
-
-// API Cek Status (Public)
-Route::get('/api/cek-status/{nim}', function($nim) {
-    $mahasiswa = \App\Models\Mahasiswa::where('nim', $nim)->first();
-    if (!$mahasiswa) {
-        return response()->json(['success' => false, 'message' => 'Not Found']);
-    }
-
-    $pendaftaran = \App\Models\Pendaftaran::where('mahasiswa_id', $mahasiswa->id)->first();
-    if (!$pendaftaran) {
-        return response()->json(['success' => false, 'message' => 'Belum Mendaftar']);
-    }
-
-    return response()->json([
-        'success' => true,
-        'data' => [
-            'nama' => $mahasiswa->user->nama_lengkap,
-            'prodi' => $mahasiswa->program_studi,
-            'status_berkas' => $pendaftaran->status_berkas,
-            'status_seleksi' => $pendaftaran->status_seleksi,
-        ]
-    ]);
-});
+Route::get('/', [\App\Http\Controllers\PublicController::class, 'beranda'])->name('beranda');
+Route::get('/informasi', [\App\Http\Controllers\PublicController::class, 'informasi'])->name('informasi');
+Route::get('/jadwal', [\App\Http\Controllers\PublicController::class, 'jadwal'])->name('jadwal');
+Route::get('/pengumuman', [\App\Http\Controllers\PublicController::class, 'pengumuman'])->name('pengumuman');
+Route::get('/api/cek-status/{nim}', [\App\Http\Controllers\PublicController::class, 'cekStatus'])
+    ->middleware('throttle:10,1');
 
 // ============================================
 // GUEST ROUTES (Hanya untuk yang belum login)
 // ============================================
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->middleware('throttle:3,1');
 });
 
 // ============================================
@@ -100,10 +67,15 @@ Route::middleware('auth')->group(function () {
         // Manajemen Jadwal, Pengumuman, & Persyaratan
         Route::resource('jadwal', JadwalController::class);
         Route::resource('pengumuman', PengumumanController::class);
+        Route::resource('panduan', PanduanController::class)->except(['show']);
         Route::resource('persyaratan', PersyaratanController::class);
+
+        // Manajemen Jenjang Pendidikan
+        Route::resource('jenjang', JenjangController::class)->except(['show']);
 
         // Manajemen Akun (Juri & WR3)
         Route::resource('users', UserManagementController::class);
+        Route::post('users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('users.reset-password');
 
         // Pendaftaran & Verifikasi Berkas
         Route::get('pendaftaran', [PendaftaranAdminController::class, 'index'])->name('pendaftaran.index');
@@ -123,9 +95,14 @@ Route::middleware('auth')->group(function () {
         // Perhitungan GAP & Hasil Akhir
         Route::get('perhitungan', [PerhitunganController::class, 'index'])->name('perhitungan.index');
         Route::post('perhitungan/proses', [PerhitunganController::class, 'proses'])->name('perhitungan.proses');
+        Route::post('perhitungan/reset', [PerhitunganController::class, 'resetPerhitungan'])->name('perhitungan.reset');
         Route::get('perhitungan/hasil', [PerhitunganController::class, 'hasil'])->name('perhitungan.hasil');
+        Route::get('perhitungan/ranking', [PerhitunganController::class, 'ranking'])->name('perhitungan.ranking');
         Route::get('perhitungan/export', [PerhitunganController::class, 'export'])->name('perhitungan.export');
     });
+
+    // Download Panduan (bisa diakses semua role yang login)
+    Route::get('panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('panduan.download');
 
     // -----------------------------------------------
     // MAHASISWA

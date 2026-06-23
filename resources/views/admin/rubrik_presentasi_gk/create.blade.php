@@ -21,6 +21,19 @@
                 <label class="form-label">Bobot</label>
                 <input type="number" name="bobot" class="form-control" required min="1">
             </div>
+            <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    <option value="">Pilih Jenjang</option>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}">{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Label Tampilan <small class="text-muted">(cth: Presentasi GK, Presentasi PI)</small></label>
+                <input type="text" name="label" class="form-control" placeholder="Kosongkan untuk default">
+            </div>
             <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.rubrik-presentasi-gk.index') }}" class="btn btn-secondary">Batal</a>
                 <button type="submit" class="btn btn-primary">Simpan</button>

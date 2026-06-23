@@ -3,8 +3,8 @@
 @section('custom-css')
 <style>
     .page-header {
-        background-color: #1e40af !important;
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%) !important;
+        background-color: var(--primary) !important;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%) !important;
         position: relative;
         overflow: hidden;
     }
@@ -35,7 +35,7 @@
 
     .info-card {
         border: none;
-        border-radius: 15px;
+        border-radius: var(--radius);
         box-shadow: 0 5px 20px rgba(0,0,0,0.05);
         transition: transform 0.3s;
         margin-bottom: 30px;
@@ -46,9 +46,9 @@
     .icon-box {
         width: 60px;
         height: 60px;
-        background-color: #eef2ff;
-        color: #4f46e5;
-        border-radius: 12px;
+        background-color: #f0f4ff;
+        color: var(--primary);
+        border-radius: var(--radius);
         display: flex;
         align-items: center;
         justify-content: center;

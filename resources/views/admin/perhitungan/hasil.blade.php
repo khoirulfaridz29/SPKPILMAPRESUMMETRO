@@ -107,7 +107,25 @@
         font-size: 12px;
         color: #1b5e20;
     }
+    .badge-custom { border-radius: var(--radius); }
+    .btn-custom { border-radius: var(--radius); }
 </style>
+
+@php
+// Helper: get bobot percentages for a peserta's jenjang
+$getBobot = function($hasil) use ($bobotPerJenjang) {
+    $jid = $hasil->pendaftaran->mahasiswa->jenjang_id ?? 1;
+    $b = $bobotPerJenjang[$jid] ?? [];
+    return [
+        'A01' => ($b['A01'] ?? 35) / 100,
+        'A02' => ($b['A02'] ?? 35) / 100,
+        'A03' => ($b['A03'] ?? 30) / 100,
+        'F01' => ($b['F01'] ?? 35) / 100,
+        'F02' => ($b['F02'] ?? 35) / 100,
+        'F03' => ($b['F03'] ?? 30) / 100,
+    ];
+};
+@endphp
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
@@ -115,10 +133,10 @@
         <p class="text-muted small mb-0">Sistem Pendukung Keputusan Pemilihan Mahasiswa Berprestasi (Pilmapres) | Metode Profile Matching</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.perhitungan.export') ?? '#' }}" class="btn btn-success px-3 rounded-pill fw-semibold">
+        <a href="{{ route('admin.perhitungan.export', $selectedJenjang ? ['jenjang_id' => $selectedJenjang] : []) }}" class="btn btn-success px-3 btn-custom fw-semibold">
             <i class="fa-solid fa-file-excel me-2"></i> Ekspor Excel (9 Sheet)
         </a>
-        <a href="{{ route('admin.perhitungan.index') }}" class="btn btn-outline-secondary px-3 rounded-pill">
+        <a href="{{ route('admin.perhitungan.index') }}" class="btn btn-outline-secondary px-3 btn-custom">
             <i class="fa-solid fa-calculator me-2"></i> Hitung Ulang
         </a>
     </div>
@@ -130,6 +148,20 @@
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 @endif
+
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <span class="fw-semibold small text-muted me-1 align-self-center">Filter Jenjang:</span>
+    <a href="{{ route('admin.perhitungan.hasil') }}"
+       class="btn btn-sm {{ !$selectedJenjang ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
+        Semua
+    </a>
+    @foreach($jenjangList as $j)
+    <a href="{{ route('admin.perhitungan.hasil', ['jenjang_id' => $j->id]) }}"
+       class="btn btn-sm {{ $selectedJenjang == $j->id ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
+        <i class="fa-solid fa-graduation-cap me-1"></i> {{ $j->nama_jenjang }}
+    </a>
+    @endforeach
+</div>
 
 <div class="sheet-card">
     <!-- 9 Tabs mimicking Microsoft Excel Worksheets -->
@@ -169,7 +201,7 @@
         <!-- SHEET 1: RUBRIK PENILAIAN -->
         <div class="tab-pane fade show active" id="sheet1" role="tabpanel">
             <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-book text-success me-2"></i> Sheet 1: Rubrik Penilaian SPK</h5>
-            <p class="text-muted small">Menampilkan struktur pembobotan bertingkat, pembagian faktor, target nilai profile matching, dan bobot masing-masing kriteria.</p>
+            <p class="text-muted small">Menampilkan struktur pembobotan bertingkat, pembagian faktor, target nilai profile matching, dan bobot masing-masing kriteria per jenjang.</p>
             
             <div class="table-responsive">
                 <table class="table excel-table text-center align-middle">
@@ -177,6 +209,7 @@
                         <tr>
                             <th>Kode</th>
                             <th class="text-start ps-3">Nama Kriteria Penilaian</th>
+                            <th>Jenjang</th>
                             <th>Jenis Tahap</th>
                             <th>Tipe Faktor</th>
                             <th>Target Nilai (Scale 1-10)</th>
@@ -188,6 +221,7 @@
                         <tr>
                             <td><code>{{ $k->kode_kriteria }}</code></td>
                             <td class="text-start ps-3 fw-semibold">{{ $k->nama_kriteria }}</td>
+                            <td><span class="badge bg-info">{{ $k->jenjang->nama_jenjang ?? 'Sarjana' }}</span></td>
                             <td>
                                 <span class="badge bg-{{ $k->jenis_faktor === 'Tahap Awal' ? 'primary' : 'success' }}">{{ $k->jenis_faktor }}</span>
                             </td>
@@ -215,7 +249,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>NIM</th>
+                            <th>NPM</th>
                             <th class="text-start ps-3">Nama Lengkap</th>
                             <th>Program Studi</th>
                             <th>IPK</th>
@@ -233,7 +267,7 @@
                             <td>{{ $m->program_studi }}</td>
                             <td class="fw-bold text-success">{{ number_format($m->ipk ?? 4.0, 2) }}</td>
                             <td><span class="badge bg-light text-dark border">{{ $m->pernah_pilmapres }}</span></td>
-                            <td><span class="badge bg-success rounded-pill px-3">Lengkap</span></td>
+                            <td><span class="badge bg-success badge-custom px-3">Lengkap</span></td>
                         </tr>
                         @empty
                         <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data mahasiswa.</td></tr>
@@ -253,7 +287,7 @@
                     <thead>
                         <tr>
                             <th rowspan="2">Nama Mahasiswa</th>
-                            <th rowspan="2">NIM</th>
+                            <th rowspan="2">NPM</th>
                             <th rowspan="2">Juri Penilai</th>
                             <th colspan="3">Tahap Awal (Skala 60-100)</th>
                             <th colspan="3">Tahap Final (Skala 60-100)</th>
@@ -272,7 +306,6 @@
                         @php
                             $pendaftaran = $h->pendaftaran;
                             $penilaians = $pendaftaran->penilaian;
-                            $juries = \App\Models\User::where('role', 'juri')->get();
                             $kriteriasMap = $kriterias->pluck('id', 'kode_kriteria');
                         @endphp
                         
@@ -311,24 +344,24 @@
         <!-- SHEET 4: PERHITUNGAN TAHAP AWAL -->
         <div class="tab-pane fade" id="sheet4" role="tabpanel">
             <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-chart-line text-info me-2"></i> Sheet 4: Perhitungan Kriteria Tahap Awal</h5>
-            <p class="text-muted small">Menghitung rata-rata nilai antar juri, kemudian mengalikan dengan bobot kriteria utama (LEVEL 2 — Bobot Kriteria). Bobot: CU Awal = 35%, GK Awal = 35%, BI Awal = 30%.</p>
+            <p class="text-muted small">Menghitung rata-rata nilai antar juri, kemudian mengalikan dengan bobot kriteria utama (LEVEL 2 — Bobot Kriteria). Bobot dinamis per jenjang.</p>
             
             <div class="table-responsive">
                 <table class="table excel-table text-center align-middle">
                     <thead>
                         <tr>
                             <th rowspan="2">Nama Mahasiswa</th>
-                            <th colspan="2">A01 (CU Berkas - 35%)</th>
-                            <th colspan="2">A02 (GK Naskah - 35%)</th>
-                            <th colspan="2">A03 (BI Video - 30%)</th>
+                            <th colspan="2">A01 (CU Berkas)</th>
+                            <th colspan="2">A02 (GK Naskah)</th>
+                            <th colspan="2">A03 (BI Video)</th>
                         </tr>
                         <tr>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 35%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 35%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 30%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -346,15 +379,18 @@
                             $avgA01 = $getAvg('A01');
                             $avgA02 = $getAvg('A02');
                             $avgA03 = $getAvg('A03');
+                            $bt = $getBobot($h);
                         @endphp
                         <tr>
-                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}</td>
+                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}
+                                <span class="badge bg-info ms-2">{{ $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana' }}</span>
+                            </td>
                             <td>{{ number_format($avgA01, 4) }}</td>
-                            <td class="fw-bold text-primary">{{ number_format($avgA01 * 0.35, 4) }}</td>
+                            <td class="fw-bold text-primary">{{ number_format($avgA01 * $bt['A01'], 4) }}</td>
                             <td>{{ number_format($avgA02, 4) }}</td>
-                            <td class="fw-bold text-primary">{{ number_format($avgA02 * 0.35, 4) }}</td>
+                            <td class="fw-bold text-primary">{{ number_format($avgA02 * $bt['A02'], 4) }}</td>
                             <td>{{ number_format($avgA03, 4) }}</td>
-                            <td class="fw-bold text-primary">{{ number_format($avgA03 * 0.30, 4) }}</td>
+                            <td class="fw-bold text-primary">{{ number_format($avgA03 * $bt['A03'], 4) }}</td>
                         </tr>
                         @empty
                         <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data perhitungan Tahap Awal.</td></tr>
@@ -367,24 +403,24 @@
         <!-- SHEET 5: PERHITUNGAN TAHAP AKHIR -->
         <div class="tab-pane fade" id="sheet5" role="tabpanel">
             <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-chart-bar text-danger me-2"></i> Sheet 5: Perhitungan Kriteria Tahap Akhir</h5>
-            <p class="text-muted small">Menghitung rata-rata nilai antar juri, kemudian mengalikan dengan bobot kriteria utama (LEVEL 2 — Bobot Kriteria). Bobot: CU Akhir = 35%, GK Akhir = 35%, BI Akhir = 30%.</p>
+            <p class="text-muted small">Menghitung rata-rata nilai antar juri, kemudian mengalikan dengan bobot kriteria utama (LEVEL 2 — Bobot Kriteria). Bobot dinamis per jenjang.</p>
             
             <div class="table-responsive">
                 <table class="table excel-table text-center align-middle">
                     <thead>
                         <tr>
                             <th rowspan="2">Nama Mahasiswa</th>
-                            <th colspan="2">F01 (CU Wawancara - 35%)</th>
-                            <th colspan="2">F02 (GK Presentasi - 35%)</th>
-                            <th colspan="2">F03 (BI Lisan - 30%)</th>
+                            <th colspan="2">F01 (CU Wawancara)</th>
+                            <th colspan="2">F02 (GK Presentasi)</th>
+                            <th colspan="2">F03 (BI Lisan)</th>
                         </tr>
                         <tr>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 35%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 35%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                             <th>Avg Juri</th>
-                            <th>Hasil (Avg &times; 30%)</th>
+                            <th>Hasil (bobot dinamis)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -402,15 +438,18 @@
                             $avgF01 = $getAvg('F01');
                             $avgF02 = $getAvg('F02');
                             $avgF03 = $getAvg('F03');
+                            $bt = $getBobot($h);
                         @endphp
                         <tr>
-                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}</td>
+                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}
+                                <span class="badge bg-info ms-2">{{ $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana' }}</span>
+                            </td>
                             <td>{{ number_format($avgF01, 4) }}</td>
-                            <td class="fw-bold text-success">{{ number_format($avgF01 * 0.35, 4) }}</td>
+                            <td class="fw-bold text-success">{{ number_format($avgF01 * $bt['F01'], 4) }}</td>
                             <td>{{ number_format($avgF02, 4) }}</td>
-                            <td class="fw-bold text-success">{{ number_format($avgF02 * 0.35, 4) }}</td>
+                            <td class="fw-bold text-success">{{ number_format($avgF02 * $bt['F02'], 4) }}</td>
                             <td>{{ number_format($avgF03, 4) }}</td>
-                            <td class="fw-bold text-success">{{ number_format($avgF03 * 0.30, 4) }}</td>
+                            <td class="fw-bold text-success">{{ number_format($avgF03 * $bt['F03'], 4) }}</td>
                         </tr>
                         @empty
                         <tr><td colspan="7" class="text-center py-4 text-muted">Belum ada data perhitungan Tahap Akhir.</td></tr>
@@ -423,7 +462,7 @@
         <!-- SHEET 6: KONVERSI 1-10 -->
         <div class="tab-pane fade" id="sheet6" role="tabpanel">
             <h5 class="fw-bold text-dark mb-2"><i class="fa-solid fa-shuffle text-secondary me-2"></i> Sheet 6: Konversi Nilai Kriteria Akhir ke Skala 1-10</h5>
-            <p class="text-muted small">Mengkonversi Nilai Akhir Kriteria (Hasil perkalian bobot) ke dalam skala 1–10 berdasarkan interval sensitivitas matematika yang ditetapkan.</p>
+            <p class="text-muted small">Mengkonversi Nilai Akhir Kriteria (Hasil perkalian bobot dinamis) ke dalam skala 1–10.</p>
             
             <div class="math-formula mb-3">
                 <strong>Aturan Interval Konversi Skala 1-10:</strong><br>
@@ -472,15 +511,18 @@
                                 return 10;
                             };
                             
-                            $a01Val = $convertToScale10($getAvg('A01') * 0.35);
-                            $a02Val = $convertToScale10($getAvg('A02') * 0.35);
-                            $a03Val = $convertToScale10($getAvg('A03') * 0.30);
-                            $f01Val = $convertToScale10($getAvg('F01') * 0.35);
-                            $f02Val = $convertToScale10($getAvg('F02') * 0.35);
-                            $f03Val = $convertToScale10($getAvg('F03') * 0.30);
+                            $bt = $getBobot($h);
+                            $a01Val = $convertToScale10($getAvg('A01') * $bt['A01']);
+                            $a02Val = $convertToScale10($getAvg('A02') * $bt['A02']);
+                            $a03Val = $convertToScale10($getAvg('A03') * $bt['A03']);
+                            $f01Val = $convertToScale10($getAvg('F01') * $bt['F01']);
+                            $f02Val = $convertToScale10($getAvg('F02') * $bt['F02']);
+                            $f03Val = $convertToScale10($getAvg('F03') * $bt['F03']);
                         @endphp
                         <tr>
-                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}</td>
+                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}
+                                <span class="badge bg-info ms-2">{{ $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana' }}</span>
+                            </td>
                             <td><span class="badge bg-primary fs-6">{{ $a01Val }}</span></td>
                             <td><span class="badge bg-primary fs-6">{{ $a02Val }}</span></td>
                             <td><span class="badge bg-primary fs-6">{{ $a03Val }}</span></td>
@@ -547,12 +589,13 @@
                                 return 10;
                             };
                             
-                            $a01Val = $convertToScale10($getAvg('A01') * 0.35);
-                            $a02Val = $convertToScale10($getAvg('A02') * 0.35);
-                            $a03Val = $convertToScale10($getAvg('A03') * 0.30);
-                            $f01Val = $convertToScale10($getAvg('F01') * 0.35);
-                            $f02Val = $convertToScale10($getAvg('F02') * 0.35);
-                            $f03Val = $convertToScale10($getAvg('F03') * 0.30);
+                            $bt = $getBobot($h);
+                            $a01Val = $convertToScale10($getAvg('A01') * $bt['A01']);
+                            $a02Val = $convertToScale10($getAvg('A02') * $bt['A02']);
+                            $a03Val = $convertToScale10($getAvg('A03') * $bt['A03']);
+                            $f01Val = $convertToScale10($getAvg('F01') * $bt['F01']);
+                            $f02Val = $convertToScale10($getAvg('F02') * $bt['F02']);
+                            $f03Val = $convertToScale10($getAvg('F03') * $bt['F03']);
                             
                             $gapA01 = $a01Val - 10;
                             $gapA02 = $a02Val - 10;
@@ -562,7 +605,9 @@
                             $gapF03 = $f03Val - 10;
                         @endphp
                         <tr>
-                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}</td>
+                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}
+                                <span class="badge bg-info ms-2">{{ $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana' }}</span>
+                            </td>
                             <td><span class="badge-premium {{ $gapA01 < 0 ? 'badge-gap-neg' : 'badge-gap-zero' }}">{{ $gapA01 }}</span></td>
                             <td><span class="badge-premium {{ $gapA02 < 0 ? 'badge-gap-neg' : 'badge-gap-zero' }}">{{ $gapA02 }}</span></td>
                             <td><span class="badge-premium {{ $gapA03 < 0 ? 'badge-gap-neg' : 'badge-gap-zero' }}">{{ $gapA03 }}</span></td>
@@ -654,12 +699,13 @@
                                 };
                             };
                             
-                            $a01 = $convertToScale10($getAvg('A01') * 0.35);
-                            $a02 = $convertToScale10($getAvg('A02') * 0.35);
-                            $a03 = $convertToScale10($getAvg('A03') * 0.30);
-                            $f01 = $convertToScale10($getAvg('F01') * 0.35);
-                            $f02 = $convertToScale10($getAvg('F02') * 0.35);
-                            $f03 = $convertToScale10($getAvg('F03') * 0.30);
+                            $bt = $getBobot($h);
+                            $a01 = $convertToScale10($getAvg('A01') * $bt['A01']);
+                            $a02 = $convertToScale10($getAvg('A02') * $bt['A02']);
+                            $a03 = $convertToScale10($getAvg('A03') * $bt['A03']);
+                            $f01 = $convertToScale10($getAvg('F01') * $bt['F01']);
+                            $f02 = $convertToScale10($getAvg('F02') * $bt['F02']);
+                            $f03 = $convertToScale10($getAvg('F03') * $bt['F03']);
                             
                             $wA01 = $getGapWeight($a01 - 10);
                             $wA02 = $getGapWeight($a02 - 10);
@@ -672,7 +718,9 @@
                             $ncf = ($wF01 + $wF02 + $wF03) / 3.0;
                         @endphp
                         <tr>
-                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}</td>
+                            <td class="text-start ps-3 fw-semibold text-dark">{{ $h->pendaftaran->mahasiswa->user->nama_lengkap }}
+                                <span class="badge bg-info ms-2">{{ $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana' }}</span>
+                            </td>
                             <td>{{ number_format($wA01, 1) }}</td>
                             <td>{{ number_format($wA02, 1) }}</td>
                             <td>{{ number_format($wA03, 1) }}</td>
@@ -701,7 +749,7 @@
                     <thead>
                         <tr>
                             <th>Ranking</th>
-                            <th>NIM</th>
+                            <th>NPM</th>
                             <th class="text-start ps-4">Nama Mahasiswa</th>
                             <th>Program Studi</th>
                             <th>Nilai Sementara (Raw Avg)</th>
@@ -716,9 +764,9 @@
                         @forelse($hasilList as $h)
                         <tr class="{{ $h->ranking <= 3 ? 'table-warning bg-opacity-10' : '' }}">
                             <td>
-                                @if($h->ranking == 1) <span class="badge bg-warning text-dark fs-6 rounded-pill px-3">🥇 1</span>
-                                @elseif($h->ranking == 2) <span class="badge bg-secondary fs-6 rounded-pill px-3">🥈 2</span>
-                                @elseif($h->ranking == 3) <span class="badge fs-6 rounded-pill px-3 text-white" style="background:#cd7f32">🥉 3</span>
+                                @if($h->ranking == 1) <span class="badge bg-warning text-dark fs-6 badge-custom px-3">🥇 1</span>
+                                @elseif($h->ranking == 2) <span class="badge bg-secondary fs-6 badge-custom px-3">🥈 2</span>
+                                @elseif($h->ranking == 3) <span class="badge fs-6 badge-custom px-3 text-white" style="background:#cd7f32">🥉 3</span>
                                 @else <span class="text-muted fw-bold">{{ $h->ranking }}</span>
                                 @endif
                             </td>
@@ -731,10 +779,10 @@
                             <td class="fw-bold text-primary fs-5">{{ number_format($h->nilai_total, 4) }}</td>
                             <td>
                                 @php $jColors = ['Juara 1'=>'warning text-dark','Juara 2'=>'secondary','Juara 3'=>'dark','Tidak Juara'=>'light text-muted']; @endphp
-                                <span class="badge bg-{{ $jColors[$h->status_juara] ?? 'secondary' }} rounded-pill px-3">{{ $h->status_juara }}</span>
+                                <span class="badge bg-{{ $jColors[$h->status_juara] ?? 'secondary' }} badge-custom px-3">{{ $h->status_juara }}</span>
                             </td>
                             <td>
-                                <span class="badge rounded-pill px-3 {{ $h->validasi_wr3 === 'Divalidasi' ? 'bg-success' : 'bg-danger' }}">
+                                <span class="badge badge-custom px-3 {{ $h->validasi_wr3 === 'Divalidasi' ? 'bg-success' : 'bg-danger' }}">
                                     {{ $h->validasi_wr3 }}
                                 </span>
                             </td>

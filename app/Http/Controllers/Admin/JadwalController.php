@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\JadwalRequest;
 use App\Models\Jadwal;
-use Illuminate\Http\Request;
 
 class JadwalController extends Controller
 {
@@ -19,16 +19,9 @@ class JadwalController extends Controller
         return view('admin.jadwal.create');
     }
 
-    public function store(Request $request)
+    public function store(JadwalRequest $request)
     {
-        $request->validate([
-            'kegiatan'        => 'required|string|max:255',
-            'tanggal_mulai'   => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'keterangan'      => 'nullable|string',
-        ]);
-
-        Jadwal::create($request->all());
+        Jadwal::create($request->validated());
 
         return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil ditambahkan.');
     }
@@ -38,16 +31,9 @@ class JadwalController extends Controller
         return view('admin.jadwal.edit', compact('jadwal'));
     }
 
-    public function update(Request $request, Jadwal $jadwal)
+    public function update(JadwalRequest $request, Jadwal $jadwal)
     {
-        $request->validate([
-            'kegiatan'        => 'required|string|max:255',
-            'tanggal_mulai'   => 'required|date',
-            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'keterangan'      => 'nullable|string',
-        ]);
-
-        $jadwal->update($request->all());
+        $jadwal->update($request->validated());
 
         return redirect()->route('admin.jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
     }

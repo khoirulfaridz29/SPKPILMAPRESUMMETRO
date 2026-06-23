@@ -21,6 +21,18 @@
                 <label class="form-label">Bobot</label>
                 <input type="number" name="bobot" class="form-control" value="{{ $rubrik_naskah_gk->bobot }}" required min="1">
             </div>
+            <div class="mb-3">
+                <label class="form-label">Jenjang</label>
+                <select name="jenjang_id" class="form-control" required>
+                    @foreach($jenjangs as $j)
+                    <option value="{{ $j->id }}" {{ $rubrik_naskah_gk->jenjang_id == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Label Tampilan <small class="text-muted">(cth: Naskah GK, Produk Inovatif)</small></label>
+                <input type="text" name="label" class="form-control" value="{{ $rubrik_naskah_gk->label }}" placeholder="Kosongkan untuk default">
+            </div>
             <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.rubrik-naskah-gk.index') }}" class="btn btn-secondary">Batal</a>
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

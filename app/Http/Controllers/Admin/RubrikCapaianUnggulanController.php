@@ -5,18 +5,25 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RubrikCapaianUnggulan;
+use App\Models\Jenjang;
 
 class RubrikCapaianUnggulanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rubriks = RubrikCapaianUnggulan::orderBy('id', 'asc')->get();
-        return view('admin.rubrik_cu.index', compact('rubriks'));
+        $query = RubrikCapaianUnggulan::query();
+        if ($request->filled('jenjang_id')) {
+            $query->where('jenjang_id', $request->jenjang_id);
+        }
+        $rubriks = $query->with('jenjang')->orderBy('id', 'asc')->get();
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_cu.index', compact('rubriks', 'jenjangs'));
     }
 
     public function create()
     {
-        return view('admin.rubrik_cu.create');
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_cu.create', compact('jenjangs'));
     }
 
     public function store(Request $request)
@@ -48,7 +55,8 @@ class RubrikCapaianUnggulanController extends Controller
     public function edit(string $id)
     {
         $rubrik = RubrikCapaianUnggulan::findOrFail($id);
-        return view('admin.rubrik_cu.edit', compact('rubrik'));
+        $jenjangs = Jenjang::orderBy('id')->get();
+        return view('admin.rubrik_cu.edit', compact('rubrik', 'jenjangs'));
     }
 
     public function update(Request $request, string $id)

@@ -14,6 +14,7 @@ class User extends Authenticatable
         'username',
         'password',
         'nama_lengkap',
+        'nidn',
         'role',
     ];
 
@@ -27,5 +28,10 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
         ];
+    }
+
+    public function mahasiswa()
+    {
+        return $this->hasOne(Mahasiswa::class);
     }
 }
