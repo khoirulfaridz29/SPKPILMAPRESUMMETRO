@@ -20,7 +20,7 @@
                 @error('nama_lengkap')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">NIDN/NIP</label>
+                <label class="form-label fw-semibold" id="labelNidn">NIDN/NIP</label>
                 <input type="text" name="nidn" class="form-control @error('nidn') is-invalid @enderror"
                     value="{{ old('nidn') }}" placeholder="Kosongkan jika tidak ada">
                 @error('nidn')<div class="invalid-feedback">{{ $message }}</div>@enderror

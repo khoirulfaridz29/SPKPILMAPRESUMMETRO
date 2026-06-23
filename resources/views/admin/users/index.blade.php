@@ -43,7 +43,7 @@
                 <tr style="border-bottom:1px solid #e5e7eb;background:#f9fafb">
                     <th style="width:40px;padding:0.6rem 0 0.6rem 1rem;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem">#</th>
                     <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Nama Lengkap</th>
-                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">NIDN/NIP</th>
+                    <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">{{ $role === 'mahasiswa' ? 'NPM' : 'NIDN/NIP' }}</th>
                     <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Username</th>
                     <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Role</th>
                     <th style="padding:0.6rem 0;text-align:left;font-weight:600;color:#6b7280;font-size:0.72rem;white-space:nowrap">Terdaftar</th>
@@ -55,7 +55,7 @@
                 <tr style="border-bottom:1px solid #f3f4f6">
                     <td style="padding:0.7rem 0 0.7rem 1rem;color:#9ca3af;font-size:0.75rem">{{ $i + 1 }}</td>
                     <td style="padding:0.7rem 0;font-weight:600;white-space:nowrap">{{ $u->nama_lengkap }}</td>
-                    <td style="padding:0.7rem 0"><code>{{ $u->nidn ?? '-' }}</code></td>
+                    <td style="padding:0.7rem 0"><code>{{ $u->role === 'mahasiswa' ? ($u->mahasiswa->nim ?? '-') : ($u->nidn ?? '-') }}</code></td>
                     <td style="padding:0.7rem 0"><code>{{ $u->username }}</code></td>
                     <td style="padding:0.7rem 0"><span class="badge badge-{{ $u->role }} px-2 py-1">{{ strtoupper($u->role) }}</span></td>
                     <td style="padding:0.7rem 0;color:#6b7280;font-size:0.72rem">{{ $u->created_at->format('d M Y') }}</td>
