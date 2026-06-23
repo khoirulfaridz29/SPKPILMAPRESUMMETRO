@@ -364,12 +364,12 @@
             .brand-content .logo-frame img { height: 58px; }
         }
         /* Global cursor — panah di non-interaktif, I-beam hanya di input */
-        html { cursor: default; }
+        html, body { cursor: default; -webkit-user-select: none; user-select: none; }
         a, button, [role="button"], .btn, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],
         input[type="checkbox"], input[type="radio"] { cursor: pointer; }
         input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-        textarea { cursor: text; }
+        textarea { cursor: text; -webkit-user-select: text; user-select: text; }
         select { cursor: pointer; }
         .disabled, [disabled] { cursor: default !important; }
     </style>

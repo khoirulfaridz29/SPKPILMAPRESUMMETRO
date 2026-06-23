@@ -439,14 +439,14 @@
         }
 
         /* GLOBAL CURSOR — panah di non-interaktif, I-beam hanya di input */
-        html { cursor: default; }
+        html, body { cursor: default; -webkit-user-select: none; user-select: none; }
         a, button, [role="button"], .btn, .nav-link, .dropdown-item,
         [data-bs-toggle], summary, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],
         input[type="checkbox"], input[type="radio"],
         .btn-close, .sidebar-toggle { cursor: pointer; }
         input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-        textarea { cursor: text; }
+        textarea { cursor: text; -webkit-user-select: text; user-select: text; }
         select { cursor: pointer; }
         .disabled, [disabled], .btn.disabled, fieldset:disabled * { cursor: default !important; }
 
