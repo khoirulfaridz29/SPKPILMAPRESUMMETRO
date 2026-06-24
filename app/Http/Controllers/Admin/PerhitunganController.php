@@ -19,6 +19,16 @@ class PerhitunganController extends Controller
 
     public function __construct(private GapCalculatorService $gap) {}
 
+    public static function convertToScale10Static(float $score): int
+    {
+        return app(GapCalculatorService::class)->convertToScale10($score);
+    }
+
+    public static function getGapWeightStatic(int $gap): float
+    {
+        return app(GapCalculatorService::class)->getGapWeight($gap);
+    }
+
     public function index(Request $request)
     {
         $query = Pendaftaran::with('mahasiswa.user', 'mahasiswa.jenjang', 'penilaian', 'hasil')
