@@ -17,16 +17,15 @@ return new class extends Migration
         ];
 
         foreach ($tables as $table => $labels) {
+            if (!Schema::hasTable($table)) continue;
+
             if (!Schema::hasColumn($table, 'label')) {
                 Schema::table($table, function (Blueprint $table) {
                     $table->string('label')->nullable()->after('jenjang_id');
                 });
             }
 
-            // Set default label for existing S1 records (jenjang_id = 1)
             DB::table($table)->where('jenjang_id', 1)->whereNull('label')->update(['label' => $labels['label']]);
-
-            // Set default label for existing D3 records (jenjang_id = 2)
             DB::table($table)->where('jenjang_id', 2)->whereNull('label')->update(['label' => $labels['d3_label']]);
         }
     }

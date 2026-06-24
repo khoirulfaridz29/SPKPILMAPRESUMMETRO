@@ -10,30 +10,32 @@ return new class extends Migration
     public function up(): void
     {
         // Add jenjang_id to mahasiswa (nullable first, backfill, then not null)
-        Schema::table('mahasiswa', function (Blueprint $table) {
-            $table->unsignedBigInteger('jenjang_id')->nullable()->after('user_id');
-            $table->foreign('jenjang_id')->references('id')->on('jenjang')->onDelete('restrict');
-        });
+        if (Schema::hasTable('mahasiswa') && !Schema::hasColumn('mahasiswa', 'jenjang_id')) {
+            Schema::table('mahasiswa', function (Blueprint $table) {
+                $table->unsignedBigInteger('jenjang_id')->nullable()->after('user_id');
+                $table->foreign('jenjang_id')->references('id')->on('jenjang')->onDelete('restrict');
+            });
 
-        // Backfill: all existing mahasiswa are Sarjana (id=1)
-        DB::table('mahasiswa')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+            DB::table('mahasiswa')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
 
-        // Make NOT NULL after backfill
-        Schema::table('mahasiswa', function (Blueprint $table) {
-            $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
-        });
+            Schema::table('mahasiswa', function (Blueprint $table) {
+                $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
+            });
+        }
 
         // Add jenjang_id to kriteria_penilaian (default Sarjana)
-        Schema::table('kriteria_penilaian', function (Blueprint $table) {
-            $table->unsignedBigInteger('jenjang_id')->nullable()->after('id');
-            $table->foreign('jenjang_id')->references('id')->on('jenjang')->onDelete('restrict');
-        });
+        if (Schema::hasTable('kriteria_penilaian') && !Schema::hasColumn('kriteria_penilaian', 'jenjang_id')) {
+            Schema::table('kriteria_penilaian', function (Blueprint $table) {
+                $table->unsignedBigInteger('jenjang_id')->nullable()->after('id');
+                $table->foreign('jenjang_id')->references('id')->on('jenjang')->onDelete('restrict');
+            });
 
-        DB::table('kriteria_penilaian')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+            DB::table('kriteria_penilaian')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
 
-        Schema::table('kriteria_penilaian', function (Blueprint $table) {
-            $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
-        });
+            Schema::table('kriteria_penilaian', function (Blueprint $table) {
+                $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
+            });
+        }
 
         // Add nullable jenjang_id to other tables
         $tables = [

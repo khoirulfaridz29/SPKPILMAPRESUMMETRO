@@ -10,12 +10,14 @@ return new class extends Migration
     public function up(): void
     {
         // 1. Backfill mahasiswa.jenjang_id for existing data
-        DB::table('mahasiswa')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+        if (Schema::hasTable('mahasiswa')) {
+            DB::table('mahasiswa')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
 
-        // 2. Make mahasiswa.jenjang_id NOT NULL
-        Schema::table('mahasiswa', function (Blueprint $table) {
-            $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
-        });
+            // 2. Make mahasiswa.jenjang_id NOT NULL
+            Schema::table('mahasiswa', function (Blueprint $table) {
+                $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
+            });
+        }
 
         // 3. Add jenjang_id to kriteria_penilaian
         if (Schema::hasTable('kriteria_penilaian') && !Schema::hasColumn('kriteria_penilaian', 'jenjang_id')) {
@@ -25,9 +27,9 @@ return new class extends Migration
             });
         }
 
-        DB::table('kriteria_penilaian')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
-
         if (Schema::hasTable('kriteria_penilaian')) {
+            DB::table('kriteria_penilaian')->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+
             Schema::table('kriteria_penilaian', function (Blueprint $table) {
                 $table->unsignedBigInteger('jenjang_id')->nullable(false)->change();
             });

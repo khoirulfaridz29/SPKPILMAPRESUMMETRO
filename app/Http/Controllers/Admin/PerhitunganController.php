@@ -9,12 +9,15 @@ use App\Models\KriteriaPenilaian;
 use App\Models\HasilPenilaian;
 use App\Models\PortofolioCu;
 use App\Models\PenugasanJuri;
+use App\Services\GapCalculatorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PerhitunganController extends Controller
 {
     use \App\Traits\Notifiable;
+
+    public function __construct(private GapCalculatorService $gap) {}
 
     public function index(Request $request)
     {
@@ -53,78 +56,6 @@ class PerhitunganController extends Controller
             ->pluck('year');
 
         return view('admin.perhitungan.index', compact('grouped', 'jenjangList', 'years', 'hasilGrouped', 'kriterias', 'juries', 'bobotPerJenjang'));
-    }
-
-    private function convertToScale10($score)
-    {
-        if ($score <= 12.0) return 1;
-        if ($score <= 15.0) return 2;
-        if ($score <= 18.0) return 3;
-        if ($score <= 21.0) return 4;
-        if ($score <= 24.0) return 5;
-        if ($score <= 26.0) return 6;
-        if ($score <= 28.0) return 7;
-        if ($score <= 30.0) return 8;
-        if ($score <= 32.0) return 9;
-        return 10;
-    }
-
-    private function getGapWeight($gap)
-    {
-        return match ($gap) {
-            0 => 10.0,
-            1 => 9.5,
-            -1 => 9.0,
-            2 => 8.5,
-            -2 => 8.0,
-            3 => 7.5,
-            -3 => 7.0,
-            4 => 6.5,
-            -4 => 6.0,
-            5 => 5.5,
-            -5 => 5.0,
-            -6 => 4.0,
-            -7 => 3.0,
-            -8 => 2.0,
-            -9 => 1.0,
-            default => $gap < 0 ? max(1.0, 10.0 + $gap) : max(1.0, 10.0 - $gap)
-        };
-    }
-
-    public static function convertToScale10Static($score)
-    {
-        if ($score <= 12.0) return 1;
-        if ($score <= 15.0) return 2;
-        if ($score <= 18.0) return 3;
-        if ($score <= 21.0) return 4;
-        if ($score <= 24.0) return 5;
-        if ($score <= 26.0) return 6;
-        if ($score <= 28.0) return 7;
-        if ($score <= 30.0) return 8;
-        if ($score <= 32.0) return 9;
-        return 10;
-    }
-
-    public static function getGapWeightStatic($gap)
-    {
-        return match ($gap) {
-            0 => 10.0,
-            1 => 9.5,
-            -1 => 9.0,
-            2 => 8.5,
-            -2 => 8.0,
-            3 => 7.5,
-            -3 => 7.0,
-            4 => 6.5,
-            -4 => 6.0,
-            5 => 5.5,
-            -5 => 5.0,
-            -6 => 4.0,
-            -7 => 3.0,
-            -8 => 2.0,
-            -9 => 1.0,
-            default => $gap < 0 ? max(1.0, 10.0 + $gap) : max(1.0, 10.0 - $gap)
-        };
     }
 
     public function proses(Request $request)
@@ -253,10 +184,10 @@ class PerhitunganController extends Controller
             foreach ($kriteriasJenjang as $k) {
                 $avgScore = $nilaiPerKriteria[$k->kode_kriteria] ?? 0;
                 $weightedScore = $avgScore * ($k->bobot / 100.0);
-                $actual = $this->convertToScale10($weightedScore);
+                $actual = $this->gap->convertToScale10($weightedScore);
                 $target = $k->nilai_target;
                 $gap = $actual - $target;
-                $weights[$k->kode_kriteria] = $this->getGapWeight($gap);
+                $weights[$k->kode_kriteria] = $this->gap->getGapWeight($gap);
             }
 
             $a01 = $nilaiPerKriteria['A01'] ?? 0;
@@ -716,12 +647,12 @@ class PerhitunganController extends Controller
             };
 
             $sheet6->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
-            $sheet6->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))));
-            $sheet6->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))));
-            $sheet6->setCellValue('D' . $row, $this->convertToScale10($weighted('A03', $getAvg('A03'))));
-            $sheet6->setCellValue('E' . $row, $this->convertToScale10($weighted('F01', $getAvg('F01'))));
-            $sheet6->setCellValue('F' . $row, $this->convertToScale10($weighted('F02', $getAvg('F02'))));
-            $sheet6->setCellValue('G' . $row, $this->convertToScale10($weighted('F03', $getAvg('F03'))));
+            $sheet6->setCellValue('B' . $row, $this->gap->convertToScale10($weighted('A01', $getAvg('A01'))));
+            $sheet6->setCellValue('C' . $row, $this->gap->convertToScale10($weighted('A02', $getAvg('A02'))));
+            $sheet6->setCellValue('D' . $row, $this->gap->convertToScale10($weighted('A03', $getAvg('A03'))));
+            $sheet6->setCellValue('E' . $row, $this->gap->convertToScale10($weighted('F01', $getAvg('F01'))));
+            $sheet6->setCellValue('F' . $row, $this->gap->convertToScale10($weighted('F02', $getAvg('F02'))));
+            $sheet6->setCellValue('G' . $row, $this->gap->convertToScale10($weighted('F03', $getAvg('F03'))));
             $styleData($sheet6, "A$row:G$row");
             $sheet6->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -754,12 +685,12 @@ class PerhitunganController extends Controller
             };
 
             $sheet7->setCellValue('A' . $row, $h->pendaftaran->mahasiswa->user->nama_lengkap);
-            $sheet7->setCellValue('B' . $row, $this->convertToScale10($weighted('A01', $getAvg('A01'))) - 10);
-            $sheet7->setCellValue('C' . $row, $this->convertToScale10($weighted('A02', $getAvg('A02'))) - 10);
-            $sheet7->setCellValue('D' . $row, $this->convertToScale10($weighted('A03', $getAvg('A03'))) - 10);
-            $sheet7->setCellValue('E' . $row, $this->convertToScale10($weighted('F01', $getAvg('F01'))) - 10);
-            $sheet7->setCellValue('F' . $row, $this->convertToScale10($weighted('F02', $getAvg('F02'))) - 10);
-            $sheet7->setCellValue('G' . $row, $this->convertToScale10($weighted('F03', $getAvg('F03'))) - 10);
+            $sheet7->setCellValue('B' . $row, $this->gap->convertToScale10($weighted('A01', $getAvg('A01'))) - 10);
+            $sheet7->setCellValue('C' . $row, $this->gap->convertToScale10($weighted('A02', $getAvg('A02'))) - 10);
+            $sheet7->setCellValue('D' . $row, $this->gap->convertToScale10($weighted('A03', $getAvg('A03'))) - 10);
+            $sheet7->setCellValue('E' . $row, $this->gap->convertToScale10($weighted('F01', $getAvg('F01'))) - 10);
+            $sheet7->setCellValue('F' . $row, $this->gap->convertToScale10($weighted('F02', $getAvg('F02'))) - 10);
+            $sheet7->setCellValue('G' . $row, $this->gap->convertToScale10($weighted('F03', $getAvg('F03'))) - 10);
             $styleData($sheet7, "A$row:G$row");
             $sheet7->getStyle("A$row")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
             $row++;
@@ -794,19 +725,19 @@ class PerhitunganController extends Controller
                 return $scores->count() > 0 ? $scores->avg() : 60;
             };
 
-            $a01 = $this->convertToScale10($weighted('A01', $getAvg('A01')));
-            $a02 = $this->convertToScale10($weighted('A02', $getAvg('A02')));
-            $a03 = $this->convertToScale10($weighted('A03', $getAvg('A03')));
-            $f01 = $this->convertToScale10($weighted('F01', $getAvg('F01')));
-            $f02 = $this->convertToScale10($weighted('F02', $getAvg('F02')));
-            $f03 = $this->convertToScale10($weighted('F03', $getAvg('F03')));
+            $a01 = $this->gap->convertToScale10($weighted('A01', $getAvg('A01')));
+            $a02 = $this->gap->convertToScale10($weighted('A02', $getAvg('A02')));
+            $a03 = $this->gap->convertToScale10($weighted('A03', $getAvg('A03')));
+            $f01 = $this->gap->convertToScale10($weighted('F01', $getAvg('F01')));
+            $f02 = $this->gap->convertToScale10($weighted('F02', $getAvg('F02')));
+            $f03 = $this->gap->convertToScale10($weighted('F03', $getAvg('F03')));
 
-            $wA01 = $this->getGapWeight($a01 - 10);
-            $wA02 = $this->getGapWeight($a02 - 10);
-            $wA03 = $this->getGapWeight($a03 - 10);
-            $wF01 = $this->getGapWeight($f01 - 10);
-            $wF02 = $this->getGapWeight($f02 - 10);
-            $wF03 = $this->getGapWeight($f03 - 10);
+            $wA01 = $this->gap->getGapWeight($a01 - 10);
+            $wA02 = $this->gap->getGapWeight($a02 - 10);
+            $wA03 = $this->gap->getGapWeight($a03 - 10);
+            $wF01 = $this->gap->getGapWeight($f01 - 10);
+            $wF02 = $this->gap->getGapWeight($f02 - 10);
+            $wF03 = $this->gap->getGapWeight($f03 - 10);
 
             $nsf = ($wA01 + $wA02 + $wA03) / 3.0;
             $ncf = ($wF01 + $wF02 + $wF03) / 3.0;

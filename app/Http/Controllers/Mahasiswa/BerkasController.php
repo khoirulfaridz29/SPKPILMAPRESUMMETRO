@@ -83,7 +83,7 @@ class BerkasController extends Controller
             return back()->with('error', 'Batas maksimal unggahan berkas telah tercapai.')->withInput();
         }
 
-        $path = $request->file('file')->store('berkas/' . $pendaftaran->id, 'public');
+        $path = $request->file('file')->store($pendaftaran->id, 'berkas');
 
         try {
             DB::transaction(function () use ($request, $pendaftaran, $path) {
@@ -95,7 +95,7 @@ class BerkasController extends Controller
                 ]);
             });
         } catch (\Exception $e) {
-            Storage::disk('public')->delete($path);
+            Storage::disk('berkas')->delete($path);
             return back()->with('error', 'Gagal menyimpan berkas. Silakan coba lagi.')->withInput();
         }
 
@@ -119,7 +119,7 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         if (!$pendaftaran) abort(403);
 
-        $path = $request->file('file')->store('portofolio/' . $pendaftaran->id, 'public');
+        $path = $request->file('file')->store('portofolio/' . $pendaftaran->id, 'berkas');
 
         $rubrik = \App\Models\RubrikCapaianUnggulan::find($request->rubrik_cu_id);
         $skor_rekomendasi = null;
@@ -153,6 +153,11 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         abort_if($berkas->pendaftaran_id !== $pendaftaran?->id, 403);
 
+        if (Storage::disk('berkas')->exists($berkas->file_path)) {
+            return Storage::disk('berkas')->response($berkas->file_path);
+        }
+
+        // fallback: file lama yang tersimpan di public disk sebelum migrasi
         $path = Storage::disk('public')->path($berkas->file_path);
         abort_if(!file_exists($path), 404);
 
@@ -164,6 +169,7 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         abort_if($berkas->pendaftaran_id !== $pendaftaran?->id, 403);
 
+        Storage::disk('berkas')->delete($berkas->file_path);
         Storage::disk('public')->delete($berkas->file_path);
         $berkas->delete();
         return back()->with('success', 'Berkas berhasil dihapus.');
@@ -175,6 +181,7 @@ class BerkasController extends Controller
         $pendaftaran = $this->getPendaftaran();
         abort_if($porto->pendaftaran_id !== $pendaftaran?->id, 403);
 
+        Storage::disk('berkas')->delete($porto->file_path);
         Storage::disk('public')->delete($porto->file_path);
         $porto->delete();
         return redirect()->route('mahasiswa.berkas.index', ['tab' => 'portofolio'])->with('success', 'Portofolio CU berhasil dihapus.');

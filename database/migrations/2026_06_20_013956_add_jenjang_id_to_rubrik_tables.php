@@ -17,7 +17,9 @@ return new class extends Migration
             'rubrik_wawancara_cu',
         ];
         foreach ($tables as $table) {
-            DB::table($table)->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+            if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                DB::table($table)->whereNull('jenjang_id')->update(['jenjang_id' => 1]);
+            }
         }
     }
 
