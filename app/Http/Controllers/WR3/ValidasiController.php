@@ -15,7 +15,7 @@ class ValidasiController extends Controller
         $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
         $rekaps = RekapTahap1::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang', 'pendaftaran.berkas')
             ->latest()->get();
-        $grouped = $rekaps->groupBy(fn($r) => $r->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? '-');
+        $grouped = $rekaps->groupBy(fn($r) => $r->pendaftaran->mahasiswa->jenjang?->nama_jenjang ?? '-');
         return view('wr3.validasi.index', compact('grouped', 'jenjangList'));
     }
 

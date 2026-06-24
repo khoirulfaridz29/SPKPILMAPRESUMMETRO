@@ -19,7 +19,7 @@ class PenilaianController extends Controller
             ->where('juri_id', $juriId)->get();
 
         $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
-        $grouped = $penugasans->groupBy(fn($pg) => $pg->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? '-');
+        $grouped = $penugasans->groupBy(fn($pg) => $pg->pendaftaran->mahasiswa->jenjang?->nama_jenjang ?? '-');
 
         $kriteriaPerJenjang = KriteriaPenilaian::selectRaw('jenjang_id, COUNT(*) as cnt')
             ->groupBy('jenjang_id')

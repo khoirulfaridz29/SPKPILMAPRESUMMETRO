@@ -38,7 +38,7 @@ class PendaftaranAdminController extends Controller
 
         $pendaftarans = $query->latest()->get();
         $jenjangList = Jenjang::orderBy('id')->get();
-        $grouped = $pendaftarans->groupBy(fn($p) => $p->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+        $grouped = $pendaftarans->groupBy(fn($p) => $p->mahasiswa->jenjang?->nama_jenjang ?? 'Sarjana');
 
         // Available years for filter
         $years = Pendaftaran::selectRaw('YEAR(tanggal_daftar) as year')

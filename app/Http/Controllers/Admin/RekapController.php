@@ -26,7 +26,7 @@ class RekapController extends Controller
 
         $rekaps = $query->latest()->get();
         $jenjangList = Jenjang::orderBy('id')->get();
-        $grouped = $rekaps->groupBy(fn($r) => $r->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+        $grouped = $rekaps->groupBy(fn($r) => $r->pendaftaran->mahasiswa->jenjang?->nama_jenjang ?? 'Sarjana');
 
         $years = RekapTahap1::join('pendaftaran', 'rekap_tahap_1.pendaftaran_id', '=', 'pendaftaran.id')
             ->selectRaw('YEAR(pendaftaran.tanggal_daftar) as year')

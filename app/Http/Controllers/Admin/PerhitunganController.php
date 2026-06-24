@@ -30,11 +30,11 @@ class PerhitunganController extends Controller
 
         $pesertaLolos = $query->get();
         $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
-        $grouped = $pesertaLolos->groupBy(fn($p) => $p->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+        $grouped = $pesertaLolos->groupBy(fn($p) => $p->mahasiswa->jenjang?->nama_jenjang ?? 'Sarjana');
 
         $hasilList = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang', 'pendaftaran.penilaian.kriteria')
             ->orderBy('ranking')->get();
-        $hasilGrouped = $hasilList->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? 'Sarjana');
+        $hasilGrouped = $hasilList->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang?->nama_jenjang ?? 'Sarjana');
 
         $kriterias = KriteriaPenilaian::with('jenjang')->get();
 

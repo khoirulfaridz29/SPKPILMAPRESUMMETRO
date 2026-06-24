@@ -15,7 +15,7 @@ class RekomendaciController extends Controller
         $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
         $hasilAll = HasilPenilaian::with('pendaftaran.mahasiswa.user', 'pendaftaran.mahasiswa.jenjang')
             ->orderBy('ranking')->get();
-        $grouped = $hasilAll->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang->nama_jenjang ?? '-');
+        $grouped = $hasilAll->groupBy(fn($h) => $h->pendaftaran->mahasiswa->jenjang?->nama_jenjang ?? '-');
         $wr3User = \App\Models\User::where('role', 'wr3')->first();
         return view('wr3.rekomendasi.index', compact('hasilAll', 'grouped', 'jenjangList', 'wr3User'));
     }
