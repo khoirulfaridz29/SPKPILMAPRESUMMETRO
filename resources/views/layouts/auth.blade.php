@@ -364,7 +364,7 @@
             .brand-content .logo-frame img { height: 58px; }
         }
         /* Global cursor — panah di non-interaktif, I-beam hanya di input */
-        html, body { cursor: default; -webkit-user-select: none; user-select: none; }
+        * { cursor: default; -webkit-user-select: none; user-select: none; }
         a, button, [role="button"], .btn, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],
         input[type="checkbox"], input[type="radio"] { cursor: pointer; }

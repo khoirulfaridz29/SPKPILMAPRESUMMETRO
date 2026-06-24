@@ -439,7 +439,7 @@
         }
 
         /* GLOBAL CURSOR — panah di non-interaktif, I-beam hanya di input */
-        html, body { cursor: default; -webkit-user-select: none; user-select: none; }
+        * { cursor: default; -webkit-user-select: none; user-select: none; }
         a, button, [role="button"], .btn, .nav-link, .dropdown-item,
         [data-bs-toggle], summary, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],

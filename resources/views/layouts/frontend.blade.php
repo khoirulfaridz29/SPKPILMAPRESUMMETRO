@@ -186,13 +186,13 @@
             flex-shrink: 0;
         }
 
-        /* Global cursor — teks hanya untuk input */
-        * { cursor: default; }
+        /* Global cursor — panah di non-interaktif, I-beam hanya di input */
+        * { cursor: default; -webkit-user-select: none; user-select: none; }
         a, button, [role="button"], .btn, label[for],
         input[type="button"], input[type="submit"], input[type="reset"],
         input[type="checkbox"], input[type="radio"] { cursor: pointer; }
         input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-        textarea, select, [contenteditable="true"] { cursor: text; }
+        textarea, select, [contenteditable="true"] { cursor: text; -webkit-user-select: text; user-select: text; }
         .disabled, [disabled] { cursor: default !important; }
 
         @yield('custom-css')
