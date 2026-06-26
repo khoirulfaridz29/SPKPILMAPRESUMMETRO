@@ -14,27 +14,27 @@
         <form action="{{ route('admin.users.update', $user) }}" method="POST">
             @csrf @method('PUT')
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nama Lengkap</label>
-                <input type="text" name="nama_lengkap" class="form-control"
+                <label for="nama_lengkap" class="form-label fw-semibold">Nama Lengkap</label>
+                <input type="text" name="nama_lengkap" id="nama_lengkap" class="form-control"
                     value="{{ old('nama_lengkap', $user->nama_lengkap) }}" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">NIDN/NIP</label>
-                <input type="text" name="nidn" class="form-control"
+                <label for="nidn" class="form-label fw-semibold">NIDN/NIP</label>
+                <input type="text" name="nidn" id="nidn" class="form-control"
                     value="{{ old('nidn', $user->nidn) }}" placeholder="Kosongkan jika tidak ada">
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Username</label>
-                <input type="text" name="username" class="form-control"
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input type="text" name="username" id="username" class="form-control"
                     value="{{ old('username', $user->username) }}" required>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Password Baru <small class="text-muted">(kosongkan jika tidak diubah)</small></label>
-                <input type="password" name="password" class="form-control">
+                <label for="password" class="form-label fw-semibold">Password Baru <small class="text-muted">(kosongkan jika tidak diubah)</small></label>
+                <input type="password" name="password" id="password" class="form-control">
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Role</label>
-                <select name="role" class="form-select" required>
+                <label for="role" class="form-label fw-semibold">Role</label>
+                <select name="role" id="role" class="form-select" required>
                     <option value="juri" {{ $user->role === 'juri' ? 'selected' : '' }}>Juri</option>
                     <option value="wr3" {{ $user->role === 'wr3' ? 'selected' : '' }}>Wakil Rektor III</option>
                     <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>

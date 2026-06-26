@@ -332,12 +332,14 @@ document.querySelectorAll('.btn-detail').forEach(function(btn) {
         const inggris = JSON.parse(d.inggris || '{}');
         const portofolio = JSON.parse(d.portofolio || '[]');
 
-        document.getElementById('modalNama').textContent = d.nama;
-        document.getElementById('modalNimJenjang').textContent = d.nim + ' \u00B7 ' + d.jenjang;
-        document.getElementById('modalEditLink').href = d.edit;
+        var el;
+        el = document.getElementById('modalNama'); if (el) el.textContent = d.nama;
+        el = document.getElementById('modalNimJenjang'); if (el) el.textContent = d.nim + ' \u00B7 ' + d.jenjang;
+        el = document.getElementById('modalEditLink'); if (el) el.href = d.edit;
 
         // Ringkasan
         const container = document.getElementById('modalScores');
+        if (!container) return;
         container.innerHTML = '';
         kodes.forEach(function(kode) {
             const v = skors[kode];
@@ -353,7 +355,8 @@ document.querySelectorAll('.btn-detail').forEach(function(btn) {
         });
 
         // Detail
-        document.getElementById('modalDetailContent').innerHTML = renderDetail(skors, wawancara, naskah, presentasi, inggris, d.jenjangId, portofolio);
+        el = document.getElementById('modalDetailContent');
+        if (el) el.innerHTML = renderDetail(skors, wawancara, naskah, presentasi, inggris, d.jenjangId, portofolio);
 
         new bootstrap.Modal('#detailModal').show();
     });

@@ -576,13 +576,23 @@
 {{-- Real-time clock --}}
 @push('scripts')
 <script>
-function updateClock() {
-    const now = new Date();
-    document.getElementById('liveClock').textContent =
-        String(now.getHours()).padStart(2, '0') + ':' +
-        String(now.getMinutes()).padStart(2, '0');
-}
-setInterval(updateClock, 1000);
+(function() {
+    var clockEl = document.getElementById('liveClock');
+    if (!clockEl) return;
+    function updateClock() {
+        var el = document.getElementById('liveClock');
+        if (!el) return;
+        var now = new Date();
+        el.textContent =
+            String(now.getHours()).padStart(2, '0') + ':' +
+            String(now.getMinutes()).padStart(2, '0');
+    }
+    var clockInterval = setInterval(updateClock, 1000);
+    updateClock();
+    document.addEventListener('turbo:before-cache', function() {
+        clearInterval(clockInterval);
+    });
+})();
 </script>
 @endpush
 

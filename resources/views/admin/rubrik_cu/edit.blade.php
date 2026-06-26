@@ -14,8 +14,8 @@
         <form action="{{ route('admin.rubrik-cu.update', $rubrik->id) }}" method="POST">
             @csrf @method('PUT')
             <div class="mb-3">
-                <label class="form-label">Jenjang</label>
-                <select name="jenjang_id" class="form-control" required>
+                <label class="form-label" for="jenjang_id">Jenjang</label>
+                <select name="jenjang_id" id="jenjang_id" class="form-control" required>
                     @foreach($jenjangs as $j)
                     <option value="{{ $j->id }}" {{ $rubrik->jenjang_id == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
                     @endforeach
@@ -23,12 +23,12 @@
             </div>
             <div class="row mb-3">
                 <div class="col-md-6">
-                    <label class="form-label">Bidang</label>
-                    <input type="text" name="bidang" class="form-control" required value="{{ old('bidang', $rubrik->bidang) }}">
+                    <label class="form-label" for="bidang">Bidang</label>
+                    <input type="text" name="bidang" id="bidang" class="form-control" required value="{{ old('bidang', $rubrik->bidang) }}">
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Wujud Capaian Unggulan</label>
-                    <input type="text" name="wujud_capaian_unggulan" class="form-control" required value="{{ old('wujud_capaian_unggulan', $rubrik->wujud_capaian_unggulan) }}">
+                    <label class="form-label" for="wujud_capaian_unggulan">Wujud Capaian Unggulan</label>
+                    <input type="text" name="wujud_capaian_unggulan" id="wujud_capaian_unggulan" class="form-control" required value="{{ old('wujud_capaian_unggulan', $rubrik->wujud_capaian_unggulan) }}">
                 </div>
             </div>
 
@@ -37,32 +37,32 @@
             <div class="row">
                 <!-- Internasional -->
                 <div class="col-md-2 mb-3">
-                    <label class="form-label fw-semibold text-primary">Internasional</label>
-                    <input type="text" name="kode_internasional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_internasional', $rubrik->kode_internasional) }}">
+                    <label class="form-label fw-semibold text-primary" for="kode_internasional">Internasional</label>
+                    <input type="text" name="kode_internasional" id="kode_internasional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_internasional', $rubrik->kode_internasional) }}">
                     <input type="text" name="skor_internasional" class="form-control" placeholder="Skor" value="{{ old('skor_internasional', $rubrik->skor_internasional) }}">
                 </div>
                 <!-- Regional -->
                 <div class="col-md-2 mb-3">
-                    <label class="form-label fw-semibold text-success">Regional</label>
-                    <input type="text" name="kode_regional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_regional', $rubrik->kode_regional) }}">
+                    <label class="form-label fw-semibold text-success" for="kode_regional">Regional</label>
+                    <input type="text" name="kode_regional" id="kode_regional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_regional', $rubrik->kode_regional) }}">
                     <input type="text" name="skor_regional" class="form-control" placeholder="Skor" value="{{ old('skor_regional', $rubrik->skor_regional) }}">
                 </div>
                 <!-- Nasional -->
                 <div class="col-md-3 mb-3">
-                    <label class="form-label fw-semibold text-info">Nasional</label>
-                    <input type="text" name="kode_nasional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_nasional', $rubrik->kode_nasional) }}">
+                    <label class="form-label fw-semibold text-info" for="kode_nasional">Nasional</label>
+                    <input type="text" name="kode_nasional" id="kode_nasional" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_nasional', $rubrik->kode_nasional) }}">
                     <input type="text" name="skor_nasional" class="form-control" placeholder="Skor" value="{{ old('skor_nasional', $rubrik->skor_nasional) }}">
                 </div>
                 <!-- Provinsi -->
                 <div class="col-md-2 mb-3">
-                    <label class="form-label fw-semibold text-warning">Provinsi</label>
-                    <input type="text" name="kode_provinsi" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_provinsi', $rubrik->kode_provinsi) }}">
+                    <label class="form-label fw-semibold text-warning" for="kode_provinsi">Provinsi</label>
+                    <input type="text" name="kode_provinsi" id="kode_provinsi" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_provinsi', $rubrik->kode_provinsi) }}">
                     <input type="text" name="skor_provinsi" class="form-control" placeholder="Skor" value="{{ old('skor_provinsi', $rubrik->skor_provinsi) }}">
                 </div>
                 <!-- Kab/Kota/PT -->
                 <div class="col-md-3 mb-3">
-                    <label class="form-label fw-semibold text-danger">Kab/Kota/PT</label>
-                    <input type="text" name="kode_kab_kota" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_kab_kota', $rubrik->kode_kab_kota) }}">
+                    <label class="form-label fw-semibold text-danger" for="kode_kab_kota">Kab/Kota/PT</label>
+                    <input type="text" name="kode_kab_kota" id="kode_kab_kota" class="form-control mb-2" placeholder="Kode" value="{{ old('kode_kab_kota', $rubrik->kode_kab_kota) }}">
                     <input type="text" name="skor_kab_kota" class="form-control" placeholder="Skor" value="{{ old('skor_kab_kota', $rubrik->skor_kab_kota) }}">
                 </div>
             </div>

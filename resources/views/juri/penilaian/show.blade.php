@@ -155,9 +155,9 @@
                                 <i class="fa-solid fa-circle-info"></i> Skor rekomendasi berdasarkan sertifikat tervalidasi admin: <strong>{{ $total_rekomendasi }}</strong>. Boleh sesuaikan +/- 10.
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small">Skor Akhir Capaian Unggulan Berkas (A01)</label>
+                                <label class="form-label fw-semibold small" for="nilai_a01">Skor Akhir Capaian Unggulan Berkas (A01)</label>
                                 <div class="input-group">
-                                    <input type="number" name="nilai_a01" class="form-control form-control-lg" value="{{ $existing_a01 ?? ($total_rekomendasi < 60 ? 60 : $total_rekomendasi) }}" min="60" max="100" required>
+                                    <input type="number" name="nilai_a01" id="nilai_a01" class="form-control form-control-lg" value="{{ $existing_a01 ?? ($total_rekomendasi < 60 ? 60 : $total_rekomendasi) }}" min="60" max="100" required>
                                     <span class="input-group-text fw-semibold small" style="background:var(--bg-body)">/ 100</span>
                                 </div>
                             </div>
@@ -281,13 +281,18 @@
 <script>
 document.querySelectorAll('.view-berkas').forEach(function(btn) {
     btn.addEventListener('click', function() {
-        document.getElementById('berkasIframe').src = this.dataset.url;
+        var iframe = document.getElementById('berkasIframe');
+        if (iframe) iframe.src = this.dataset.url;
         new bootstrap.Modal('#berkasModal').show();
     });
 });
-document.getElementById('berkasModal').addEventListener('hidden.bs.modal', function() {
-    document.getElementById('berkasIframe').src = '';
-});
+var berkasModal = document.getElementById('berkasModal');
+if (berkasModal) {
+    berkasModal.addEventListener('hidden.bs.modal', function() {
+        var iframe = document.getElementById('berkasIframe');
+        if (iframe) iframe.src = '';
+    });
+}
 </script>
 @endpush
 @endsection

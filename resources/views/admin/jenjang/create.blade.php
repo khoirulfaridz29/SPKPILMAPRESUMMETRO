@@ -15,16 +15,16 @@
             @csrf
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label fw-semibold">Kode Jenjang</label>
-                    <input type="text" name="kode_jenjang" class="form-control @error('kode_jenjang') is-invalid @enderror"
+                    <label for="kode_jenjang" class="form-label fw-semibold">Kode Jenjang</label>
+                    <input type="text" name="kode_jenjang" id="kode_jenjang" class="form-control @error('kode_jenjang') is-invalid @enderror"
                         value="{{ old('kode_jenjang') }}" placeholder="Contoh: S1, D3" required>
                     @error('kode_jenjang')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-8 mb-3">
-                    <label class="form-label fw-semibold">Nama Jenjang</label>
-                    <input type="text" name="nama_jenjang" class="form-control @error('nama_jenjang') is-invalid @enderror"
+                    <label for="nama_jenjang" class="form-label fw-semibold">Nama Jenjang</label>
+                    <input type="text" name="nama_jenjang" id="nama_jenjang" class="form-control @error('nama_jenjang') is-invalid @enderror"
                         value="{{ old('nama_jenjang') }}" placeholder="Contoh: Sarjana, Diploma" required>
                     @error('nama_jenjang')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -32,8 +32,8 @@
                 </div>
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Deskripsi (Opsional)</label>
-                <textarea name="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror"
+                <label for="deskripsi" class="form-label fw-semibold">Deskripsi (Opsional)</label>
+                <textarea name="deskripsi" id="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror"
                     rows="3">{{ old('deskripsi') }}</textarea>
                 @error('deskripsi')
                     <div class="invalid-feedback">{{ $message }}</div>

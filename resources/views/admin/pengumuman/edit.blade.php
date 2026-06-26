@@ -15,21 +15,21 @@
             @csrf
             @method('PUT')
             <div class="mb-3">
-                <label class="form-label fw-semibold">Judul Pengumuman</label>
-                <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul', $pengumuman->judul) }}" required>
+                <label for="judul" class="form-label fw-semibold">Judul Pengumuman</label>
+                <input type="text" name="judul" id="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul', $pengumuman->judul) }}" required>
                 @error('judul')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Tanggal Publish</label>
-                <input type="date" name="tanggal_publish" class="form-control @error('tanggal_publish') is-invalid @enderror" value="{{ old('tanggal_publish', $pengumuman->tanggal_publish) }}" required>
+                <label for="tanggal_publish" class="form-label fw-semibold">Tanggal Publish</label>
+                <input type="date" name="tanggal_publish" id="tanggal_publish" class="form-control @error('tanggal_publish') is-invalid @enderror" value="{{ old('tanggal_publish', $pengumuman->tanggal_publish) }}" required>
                 @error('tanggal_publish')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">File Lampiran (Opsional)</label>
+                <label for="file_pengumuman" class="form-label fw-semibold">File Lampiran (Opsional)</label>
                 @if($pengumuman->file_path)
                     <div class="mb-2">
                         <a href="{{ asset('storage/' . $pengumuman->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary">
@@ -37,15 +37,15 @@
                         </a>
                     </div>
                 @endif
-                <input type="file" name="file_pengumuman" class="form-control @error('file_pengumuman') is-invalid @enderror">
+                <input type="file" name="file_pengumuman" id="file_pengumuman" class="form-control @error('file_pengumuman') is-invalid @enderror">
                 <small class="text-muted">Biarkan kosong jika tidak ingin mengubah file. Format: PDF, JPG, PNG. Maks: 5MB.</small>
                 @error('file_pengumuman')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Isi Konten</label>
-                <textarea name="konten" class="form-control @error('konten') is-invalid @enderror" rows="10" required>{{ old('konten', $pengumuman->konten) }}</textarea>
+                <label for="konten" class="form-label fw-semibold">Isi Konten</label>
+                <textarea name="konten" id="konten" class="form-control @error('konten') is-invalid @enderror" rows="10" required>{{ old('konten', $pengumuman->konten) }}</textarea>
                 @error('konten')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

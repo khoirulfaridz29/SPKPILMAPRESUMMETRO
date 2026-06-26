@@ -25,13 +25,13 @@
             @csrf
             
             <div class="mb-3">
-                <label class="form-label fw-semibold">IPK Terakhir</label>
-                <input type="number" step="0.01" min="0" max="4.00" name="ipk" class="form-control" required placeholder="Contoh: 3.75">
+                <label class="form-label fw-semibold" for="ipk">IPK Terakhir</label>
+                <input type="number" step="0.01" min="0" max="4.00" name="ipk" id="ipk" class="form-control" required placeholder="Contoh: 3.75">
             </div>
             
             <div class="mb-4">
-                <label class="form-label fw-semibold">Pernah Mengikuti PILMAPRES?</label>
-                <select name="pernah_pilmapres" class="form-select" required>
+                <label class="form-label fw-semibold" for="pernah_pilmapres">Pernah Mengikuti PILMAPRES?</label>
+                <select name="pernah_pilmapres" id="pernah_pilmapres" class="form-select" required>
                     <option value="Belum Pernah">Belum Pernah</option>
                     <option value="Lokal">Ya, Tingkat Lokal (Universitas)</option>
                     <option value="Nasional">Ya, Tingkat Nasional</option>

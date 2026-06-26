@@ -14,22 +14,22 @@
         <form action="{{ route('admin.panduan.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Judul Panduan</label>
-                <input type="text" name="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul') }}" required>
+                <label for="judul" class="form-label fw-semibold">Judul Panduan</label>
+                <input type="text" name="judul" id="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ old('judul') }}" required>
                 @error('judul')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Deskripsi (Opsional)</label>
-                <textarea name="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror" rows="3">{{ old('deskripsi') }}</textarea>
+                <label for="deskripsi" class="form-label fw-semibold">Deskripsi (Opsional)</label>
+                <textarea name="deskripsi" id="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror" rows="3">{{ old('deskripsi') }}</textarea>
                 @error('deskripsi')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">File Panduan (PDF)</label>
-                <input type="file" name="file_panduan" class="form-control @error('file_panduan') is-invalid @enderror" accept=".pdf" required>
+                <label for="file_panduan" class="form-label fw-semibold">File Panduan (PDF)</label>
+                <input type="file" name="file_panduan" id="file_panduan" class="form-control @error('file_panduan') is-invalid @enderror" accept=".pdf" required>
                 <small class="text-muted">Format: PDF. Maks: 10MB.</small>
                 @error('file_panduan')
                     <div class="invalid-feedback">{{ $message }}</div>

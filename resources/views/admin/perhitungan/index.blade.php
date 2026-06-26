@@ -33,8 +33,8 @@
             <div class="card-body">
                 <form method="GET">
                     <div class="mb-3">
-                        <label class="form-label">Tahun Akademik</label>
-                        <select name="tahun" class="form-select">
+                        <label class="form-label" for="tahun">Tahun Akademik</label>
+                        <select name="tahun" id="tahun" class="form-select">
                             <option value="">Semua Tahun</option>
                             @foreach($years as $y)
                                 <option value="{{ $y }}" {{ request('tahun') == $y ? 'selected' : '' }}>{{ $y }}/{{ $y + 1 }}</option>

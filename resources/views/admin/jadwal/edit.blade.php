@@ -15,31 +15,31 @@
             @csrf
             @method('PUT')
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nama Kegiatan</label>
-                <input type="text" name="kegiatan" class="form-control @error('kegiatan') is-invalid @enderror" value="{{ old('kegiatan', $jadwal->kegiatan) }}" required>
+                <label for="kegiatan" class="form-label fw-semibold">Nama Kegiatan</label>
+                <input type="text" name="kegiatan" id="kegiatan" class="form-control @error('kegiatan') is-invalid @enderror" value="{{ old('kegiatan', $jadwal->kegiatan) }}" required>
                 @error('kegiatan')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-semibold">Tanggal Mulai</label>
-                    <input type="date" name="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror" value="{{ old('tanggal_mulai', $jadwal->tanggal_mulai) }}" required>
+                    <label for="tanggal_mulai" class="form-label fw-semibold">Tanggal Mulai</label>
+                    <input type="date" name="tanggal_mulai" id="tanggal_mulai" class="form-control @error('tanggal_mulai') is-invalid @enderror" value="{{ old('tanggal_mulai', $jadwal->tanggal_mulai) }}" required>
                     @error('tanggal_mulai')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label class="form-label fw-semibold">Tanggal Selesai</label>
-                    <input type="date" name="tanggal_selesai" class="form-control @error('tanggal_selesai') is-invalid @enderror" value="{{ old('tanggal_selesai', $jadwal->tanggal_selesai) }}" required>
+                    <label for="tanggal_selesai" class="form-label fw-semibold">Tanggal Selesai</label>
+                    <input type="date" name="tanggal_selesai" id="tanggal_selesai" class="form-control @error('tanggal_selesai') is-invalid @enderror" value="{{ old('tanggal_selesai', $jadwal->tanggal_selesai) }}" required>
                     @error('tanggal_selesai')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Keterangan (Opsional)</label>
-                <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3">{{ old('keterangan', $jadwal->keterangan) }}</textarea>
+                <label for="keterangan" class="form-label fw-semibold">Keterangan (Opsional)</label>
+                <textarea name="keterangan" id="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3">{{ old('keterangan', $jadwal->keterangan) }}</textarea>
                 @error('keterangan')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror

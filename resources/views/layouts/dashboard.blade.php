@@ -654,7 +654,7 @@
                             <div class="d-flex align-items-center justify-content-between px-3 py-3" style="border-top-left-radius: 16px; border-top-right-radius: 16px; border-bottom: 1px solid var(--border-color); background: var(--bg-card);">
                                 <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">Notifikasi Terbaru</h6>
                                 @if($unreadNotifs > 0)
-                                <a href="{{ route('notifications.markAllRead') }}" class="text-primary text-decoration-none fw-semibold" style="font-size: 0.8rem;" onclick="event.preventDefault(); document.getElementById('mark-all-read-form').submit();">
+                                <a href="javascript:void(0)" class="text-primary text-decoration-none fw-semibold" style="font-size: 0.8rem;" onclick="event.preventDefault(); var f=document.getElementById('mark-all-read-form');if(f)f.submit();">
                                     Tandai semua dibaca
                                 </a>
                                 <form id="mark-all-read-form" action="{{ route('notifications.markAllRead') }}" method="POST" style="display: none;">
@@ -917,11 +917,16 @@
             });
         }
 
-        // Clean up before Turbo caches page (prevents duplicate tooltips)
+        // Clean up before Turbo caches page (prevents duplicate tooltips & stale intervals)
         document.addEventListener('turbo:before-cache', function() {
             if (window._sidebarTooltips) {
                 window._sidebarTooltips.forEach(function(tp) { tp.dispose(); });
                 window._sidebarTooltips = [];
+            }
+            // Clear any intervals stored on window
+            if (window._pageIntervals) {
+                window._pageIntervals.forEach(function(id) { clearInterval(id); });
+                window._pageIntervals = [];
             }
         });
 

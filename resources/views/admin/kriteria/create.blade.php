@@ -14,8 +14,8 @@
         <form action="{{ route('admin.kriteria.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Jenjang</label>
-                <select name="jenjang_id" class="form-select @error('jenjang_id') is-invalid @enderror" required>
+                <label for="jenjang_id" class="form-label fw-semibold">Jenjang</label>
+                <select name="jenjang_id" id="jenjang_id" class="form-select @error('jenjang_id') is-invalid @enderror" required>
                     <option value="">-- Pilih Jenjang --</option>
                     @foreach($jenjangs as $j)
                     <option value="{{ $j->id }}" {{ old('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
@@ -24,20 +24,20 @@
                 @error('jenjang_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Kode Kriteria</label>
-                <input type="text" name="kode_kriteria" class="form-control @error('kode_kriteria') is-invalid @enderror"
+                <label for="kode_kriteria" class="form-label fw-semibold">Kode Kriteria</label>
+                <input type="text" name="kode_kriteria" id="kode_kriteria" class="form-control @error('kode_kriteria') is-invalid @enderror"
                     value="{{ old('kode_kriteria') }}" placeholder="Cth: K1" required>
                 @error('kode_kriteria')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nama Kriteria</label>
-                <input type="text" name="nama_kriteria" class="form-control @error('nama_kriteria') is-invalid @enderror"
+                <label for="nama_kriteria" class="form-label fw-semibold">Nama Kriteria</label>
+                <input type="text" name="nama_kriteria" id="nama_kriteria" class="form-control @error('nama_kriteria') is-invalid @enderror"
                     value="{{ old('nama_kriteria') }}" placeholder="Cth: IPK" required>
                 @error('nama_kriteria')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Tahap Seleksi</label>
-                <select name="jenis_faktor" class="form-select @error('jenis_faktor') is-invalid @enderror" required>
+                <label for="jenis_faktor" class="form-label fw-semibold">Tahap Seleksi</label>
+                <select name="jenis_faktor" id="jenis_faktor" class="form-select @error('jenis_faktor') is-invalid @enderror" required>
                     <option value="">-- Pilih Tahap --</option>
                     <option value="Tahap Awal" {{ old('jenis_faktor') === 'Tahap Awal' ? 'selected' : '' }}>Tahap Awal</option>
                     <option value="Tahap Final" {{ old('jenis_faktor') === 'Tahap Final' ? 'selected' : '' }}>Tahap Final</option>
@@ -45,22 +45,22 @@
                 @error('jenis_faktor')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Tipe Faktor (Profile Matching)</label>
-                <select name="tipe_faktor" class="form-select @error('tipe_faktor') is-invalid @enderror" required>
+                <label for="tipe_faktor" class="form-label fw-semibold">Tipe Faktor (Profile Matching)</label>
+                <select name="tipe_faktor" id="tipe_faktor" class="form-select @error('tipe_faktor') is-invalid @enderror" required>
                     <option value="Core Factor" {{ old('tipe_faktor') === 'Core Factor' ? 'selected' : '' }}>Core Factor (CF)</option>
                     <option value="Secondary Factor" {{ old('tipe_faktor') === 'Secondary Factor' ? 'selected' : '' }}>Secondary Factor (SF)</option>
                 </select>
                 @error('tipe_faktor')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nilai Target (1-5)</label>
-                <input type="number" name="nilai_target" class="form-control @error('nilai_target') is-invalid @enderror"
+                <label for="nilai_target" class="form-label fw-semibold">Nilai Target (1-5)</label>
+                <input type="number" name="nilai_target" id="nilai_target" class="form-control @error('nilai_target') is-invalid @enderror"
                     value="{{ old('nilai_target') }}" min="1" max="5" required>
                 @error('nilai_target')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Bobot (%)</label>
-                <input type="number" name="bobot" class="form-control @error('bobot') is-invalid @enderror"
+                <label for="bobot" class="form-label fw-semibold">Bobot (%)</label>
+                <input type="number" name="bobot" id="bobot" class="form-control @error('bobot') is-invalid @enderror"
                     value="{{ old('bobot') }}" step="0.01" min="0" max="100" required>
                 @error('bobot')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>

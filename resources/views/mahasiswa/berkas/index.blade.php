@@ -78,8 +78,8 @@
                         @csrf
                         <input type="hidden" name="tab" value="dokumen">
                         <div class="mb-3">
-                            <label class="form-label">Jenis Dokumen</label>
-                            <select name="nama_berkas" class="form-select" required>
+                            <label class="form-label" for="nama_berkas">Jenis Dokumen</label>
+                            <select name="nama_berkas" id="nama_berkas" class="form-select" required>
                                 <option value="">-- Pilih Jenis --</option>
                                 <option value="KTP">KTP</option>
                                 <option value="KTM">KTM</option>
@@ -88,8 +88,8 @@
                             </select>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">File <small class="text-muted">(PDF/JPG/PNG - Max 5MB)</small></label>
-                            <input type="file" name="file" class="form-control" accept=".pdf,.jpg,.png" required>
+                            <label class="form-label" for="file_dokumen">File <small class="text-muted">(PDF/JPG/PNG - Max 5MB)</small></label>
+                            <input type="file" name="file" id="file_dokumen" class="form-control" accept=".pdf,.jpg,.png" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100" {{ $pendaftaran->is_submitted ? 'disabled' : '' }}>Simpan Dokumen</button>
                     </form>
@@ -140,8 +140,8 @@
                     <form action="{{ route('mahasiswa.berkas.portofolio.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
-                            <label class="form-label">Capaian Unggulan (Berdasarkan Rubrik)</label>
-                            <select name="rubrik_cu_id" class="form-select" required>
+                            <label class="form-label" for="rubrik_cu_id">Capaian Unggulan (Berdasarkan Rubrik)</label>
+                            <select name="rubrik_cu_id" id="rubrik_cu_id" class="form-select" required>
                                 <option value="">-- Pilih Capaian --</option>
                                 @foreach($rubriks as $r)
                                     <option value="{{ $r->id }}">{{ $r->bidang }} - {{ $r->wujud_capaian_unggulan }}</option>
@@ -149,8 +149,8 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Kategori / Jenjang</label>
-                            <select name="kategori_jenjang" class="form-select" required>
+                            <label class="form-label" for="kategori_jenjang">Kategori / Jenjang</label>
+                            <select name="kategori_jenjang" id="kategori_jenjang" class="form-select" required>
                                 <option value="">-- Pilih Jenjang --</option>
                                 <option value="Internasional">Internasional</option>
                                 <option value="Regional">Regional</option>
@@ -160,22 +160,22 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Nama Prestasi/Kegiatan</label>
-                            <input type="text" name="nama_prestasi" class="form-control" required placeholder="Contoh: Juara 1 Lomba Web Design">
+                            <label class="form-label" for="nama_prestasi">Nama Prestasi/Kegiatan</label>
+                            <input type="text" name="nama_prestasi" id="nama_prestasi" class="form-control" required placeholder="Contoh: Juara 1 Lomba Web Design">
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
-                                <label class="form-label">Tempat Pelaksanaan</label>
-                                <input type="text" name="tempat" class="form-control" required>
+                                <label class="form-label" for="tempat">Tempat Pelaksanaan</label>
+                                <input type="text" name="tempat" id="tempat" class="form-control" required>
                             </div>
                             <div class="col-6">
-                                <label class="form-label">Tanggal Pelaksanaan</label>
-                                <input type="date" name="tanggal_pelaksanaan" class="form-control" required>
+                                <label class="form-label" for="tanggal_pelaksanaan">Tanggal Pelaksanaan</label>
+                                <input type="date" name="tanggal_pelaksanaan" id="tanggal_pelaksanaan" class="form-control" required>
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">File Sertifikat / Bukti <small class="text-muted">(PDF/JPG/PNG)</small></label>
-                            <input type="file" name="file" class="form-control" accept=".pdf,.jpg,.png" required>
+                            <label class="form-label" for="file_portofolio">File Sertifikat / Bukti <small class="text-muted">(PDF/JPG/PNG)</small></label>
+                            <input type="file" name="file" id="file_portofolio" class="form-control" accept=".pdf,.jpg,.png" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-100" {{ $pendaftaran->is_submitted ? 'disabled' : '' }}>Simpan Portofolio</button>
                     </form>
@@ -253,8 +253,8 @@
                             <input type="hidden" name="tab" value="gagasan">
                             <input type="hidden" name="nama_berkas" value="Naskah Gagasan Kreatif">
                             <div class="mb-4 text-start">
-                                <label class="form-label fw-bold">File {{ $rubrikNaskahLabel }} (PDF - Max 5MB)</label>
-                                <input type="file" name="file" class="form-control form-control-lg" accept=".pdf" required>
+                                <label class="form-label fw-bold" for="file_naskah">File {{ $rubrikNaskahLabel }} (PDF - Max 5MB)</label>
+                                <input type="file" name="file" id="file_naskah" class="form-control form-control-lg" accept=".pdf" required>
                             </div>
                             <button type="submit" class="btn btn-primary btn-lg w-100" {{ $pendaftaran->is_submitted ? 'disabled' : '' }}>
                                 <i class="fa-solid fa-upload me-2"></i> Simpan {{ $rubrikNaskahLabel }}
@@ -299,8 +299,8 @@
                             <input type="hidden" name="tab" value="video_bi">
                             <input type="hidden" name="nama_berkas" value="Video Bahasa Inggris">
                             <div class="mb-4 text-start">
-                                <label class="form-label fw-bold">File Video Bahasa Inggris (MP4 - Max 20MB)</label>
-                                <input type="file" name="file" class="form-control form-control-lg" accept=".mp4" required>
+                                <label class="form-label fw-bold" for="file_video">File Video Bahasa Inggris (MP4 - Max 20MB)</label>
+                                <input type="file" name="file" id="file_video" class="form-control form-control-lg" accept=".mp4" required>
                             </div>
                             <button type="submit" class="btn btn-primary btn-lg w-100" {{ $pendaftaran->is_submitted ? 'disabled' : '' }}>
                                 <i class="fa-solid fa-upload me-2"></i> Simpan Video Bahasa Inggris

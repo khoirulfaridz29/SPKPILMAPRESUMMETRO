@@ -180,10 +180,10 @@ INSERT INTO `mahasiswa` (`user_id`, `nim`, `program_studi`) VALUES
 INSERT INTO `kriteria_penilaian` (`kode_kriteria`, `nama_kriteria`, `jenis_faktor`, `nilai_target`, `bobot`) VALUES
 ('A01', 'Capaian Unggulan (CU) Berkas', 'Tahap Awal', 10, 35),
 ('A02', 'Gagasan Kreatif (GK) Naskah', 'Tahap Awal', 10, 35),
-('A03', 'Bahasa Inggris (BI) Video', 'Tahap Awal', 10, 30),
+('A03', 'Bahasa Inggris (BI) Video', 'Tahap Awal', 8, 30),
 ('F01', 'Capaian Unggulan (CU) Wawancara', 'Tahap Final', 10, 35),
 ('F02', 'Gagasan Kreatif (GK) Presentasi', 'Tahap Final', 10, 35),
-('F03', 'Bahasa Inggris (BI) Lisan', 'Tahap Final', 10, 30);
+('F03', 'Bahasa Inggris (BI) Lisan', 'Tahap Final', 8, 30);
 
 -- Insert Dummy Jadwal
 INSERT INTO `jadwal` (`kegiatan`, `tanggal_mulai`, `tanggal_selesai`, `keterangan`) VALUES

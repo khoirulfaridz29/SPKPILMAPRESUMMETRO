@@ -14,31 +14,31 @@
         <form action="{{ route('admin.users.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nama Lengkap</label>
-                <input type="text" name="nama_lengkap" class="form-control @error('nama_lengkap') is-invalid @enderror"
+                <label for="nama_lengkap" class="form-label fw-semibold">Nama Lengkap</label>
+                <input type="text" name="nama_lengkap" id="nama_lengkap" class="form-control @error('nama_lengkap') is-invalid @enderror"
                     value="{{ old('nama_lengkap') }}" required>
                 @error('nama_lengkap')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold" id="labelNidn">NIDN/NIP</label>
-                <input type="text" name="nidn" class="form-control @error('nidn') is-invalid @enderror"
+                <label for="nidn" class="form-label fw-semibold" id="labelNidn">NIDN/NIP</label>
+                <input type="text" name="nidn" id="nidn" class="form-control @error('nidn') is-invalid @enderror"
                     value="{{ old('nidn') }}" placeholder="Kosongkan jika tidak ada">
                 @error('nidn')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Username</label>
-                <input type="text" name="username" class="form-control @error('username') is-invalid @enderror"
+                <label for="username" class="form-label fw-semibold">Username</label>
+                <input type="text" name="username" id="username" class="form-control @error('username') is-invalid @enderror"
                     value="{{ old('username') }}" required>
                 @error('username')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Password</label>
-                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                <label for="password" class="form-label fw-semibold">Password</label>
+                <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" required>
                 @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-4">
-                <label class="form-label fw-semibold">Role</label>
-                <select name="role" class="form-select @error('role') is-invalid @enderror" required>
+                <label for="role" class="form-label fw-semibold">Role</label>
+                <select name="role" id="role" class="form-select @error('role') is-invalid @enderror" required>
                     <option value="">-- Pilih Role --</option>
                     <option value="juri" {{ old('role') === 'juri' ? 'selected' : '' }}>Juri</option>
                     <option value="wr3" {{ old('role') === 'wr3' ? 'selected' : '' }}>Wakil Rektor III</option>

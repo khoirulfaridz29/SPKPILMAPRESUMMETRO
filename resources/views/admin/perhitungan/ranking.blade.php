@@ -32,8 +32,8 @@
             <div class="card-body">
                 <form method="GET">
                     <div class="mb-3">
-                        <label class="form-label">Jenjang</label>
-                        <select name="jenjang_id" class="form-select">
+                        <label class="form-label" for="jenjang_id">Jenjang</label>
+                        <select name="jenjang_id" id="jenjang_id" class="form-select">
                             <option value="">Semua Jenjang</option>
                             @foreach($jenjangList as $j)
                                 <option value="{{ $j->id }}" {{ $selectedJenjang == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>

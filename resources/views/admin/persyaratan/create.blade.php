@@ -14,15 +14,15 @@
         <form action="{{ route('admin.persyaratan.store') }}" method="POST">
             @csrf
             <div class="mb-3">
-                <label class="form-label fw-semibold">Nama Persyaratan (Judul File)</label>
-                <input type="text" name="nama_syarat" class="form-control @error('nama_syarat') is-invalid @enderror" value="{{ old('nama_syarat') }}" required placeholder="Contoh: Sertifikat Prestasi">
+                <label for="nama_syarat" class="form-label fw-semibold">Nama Persyaratan (Judul File)</label>
+                <input type="text" name="nama_syarat" id="nama_syarat" class="form-control @error('nama_syarat') is-invalid @enderror" value="{{ old('nama_syarat') }}" required placeholder="Contoh: Sertifikat Prestasi">
                 @error('nama_syarat')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
             <div class="mb-3">
-                <label class="form-label fw-semibold">Keterangan</label>
-                <textarea name="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3" placeholder="Jelaskan detail file yang harus diunggah...">{{ old('keterangan') }}</textarea>
+                <label for="keterangan" class="form-label fw-semibold">Keterangan</label>
+                <textarea name="keterangan" id="keterangan" class="form-control @error('keterangan') is-invalid @enderror" rows="3" placeholder="Jelaskan detail file yang harus diunggah...">{{ old('keterangan') }}</textarea>
                 @error('keterangan')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
