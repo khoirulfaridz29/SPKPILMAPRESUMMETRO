@@ -85,6 +85,8 @@ Route::middleware('auth')->group(function () {
         Route::post('pendaftaran/{pendaftaran}/tolak', [PendaftaranAdminController::class, 'tolak'])->name('pendaftaran.tolak');
         Route::post('pendaftaran/berkas/{berkas}/validasi', [PendaftaranAdminController::class, 'validasiBerkas'])->name('pendaftaran.berkas.validasi');
         Route::post('pendaftaran/portofolio/{portofolio}/validasi', [PendaftaranAdminController::class, 'validasiPortofolio'])->name('pendaftaran.portofolio.validasi');
+        Route::get('pendaftaran/berkas/{berkas}/lihat', [PendaftaranAdminController::class, 'lihatBerkas'])->name('pendaftaran.berkas.lihat');
+        Route::get('pendaftaran/portofolio/{portofolio}/lihat', [PendaftaranAdminController::class, 'lihatPortofolio'])->name('pendaftaran.portofolio.lihat');
 
         // Rekap Tahap I & Penugasan Juri
         Route::get('rekap', [RekapController::class, 'index'])->name('rekap.index');
@@ -105,6 +107,10 @@ Route::middleware('auth')->group(function () {
     // Download Panduan (bisa diakses semua role yang login)
     Route::get('panduan/{panduan}/download', [\App\Http\Controllers\Admin\PanduanController::class, 'download'])->name('panduan.download');
 
+    // Lihat Berkas (bisa diakses admin, juri, wr3 yang sudah login)
+    Route::get('berkas/{berkas}/view', [\App\Http\Controllers\Admin\PendaftaranAdminController::class, 'lihatBerkas'])->name('berkas.view');
+    Route::get('portofolio/{portofolio}/view', [\App\Http\Controllers\Admin\PendaftaranAdminController::class, 'lihatPortofolio'])->name('portofolio.view');
+
     // -----------------------------------------------
     // MAHASISWA
     // -----------------------------------------------
@@ -119,6 +125,7 @@ Route::middleware('auth')->group(function () {
         Route::post('berkas/portofolio', [BerkasController::class, 'storePortofolio'])->middleware('throttle:10,1')->name('berkas.portofolio.store');
         Route::delete('berkas/portofolio/{id}', [BerkasController::class, 'destroyPortofolio'])->name('berkas.portofolio.destroy');
         Route::get('berkas/{berkas}/lihat', [BerkasController::class, 'lihat'])->name('berkas.lihat');
+        Route::get('portofolio/{portofolio}/lihat', [BerkasController::class, 'lihatPortofolio'])->name('portofolio.lihat');
     });
 
     // -----------------------------------------------

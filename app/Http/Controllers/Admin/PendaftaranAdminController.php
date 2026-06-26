@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pendaftaran;
 use App\Models\BerkasPendaftaran;
+use App\Models\PortofolioCu;
 use App\Models\RekapTahap1;
 use App\Models\Jenjang;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PendaftaranAdminController extends Controller
 {
@@ -151,5 +153,29 @@ class PendaftaranAdminController extends Controller
         $this->sendNotification($portofolio->pendaftaran->mahasiswa->user_id, 'Portofolio CU "' . $portofolio->nama_prestasi . '" Anda dinyatakan ' . strtoupper($request->status) . '.', $request->status === 'Valid' ? 'success' : 'danger');
 
         return back()->with('success', 'Validasi portofolio berhasil diperbarui.');
+    }
+
+    public function lihatBerkas(BerkasPendaftaran $berkas)
+    {
+        if (Storage::disk('berkas')->exists($berkas->file_path)) {
+            return Storage::disk('berkas')->response($berkas->file_path);
+        }
+
+        $path = Storage::disk('public')->path($berkas->file_path);
+        abort_if(!file_exists($path), 404);
+
+        return response()->file($path);
+    }
+
+    public function lihatPortofolio(PortofolioCu $portofolio)
+    {
+        if (Storage::disk('berkas')->exists($portofolio->file_path)) {
+            return Storage::disk('berkas')->response($portofolio->file_path);
+        }
+
+        $path = Storage::disk('public')->path($portofolio->file_path);
+        abort_if(!file_exists($path), 404);
+
+        return response()->file($path);
     }
 }

@@ -101,7 +101,7 @@
                                 </td>
                                 <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                                     <div class="d-flex justify-content-center gap-1">
-                                        <a href="javascript:void(0)" class="view-berkas" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6b7280;cursor:pointer;text-decoration:none" title="Lihat" data-url="{{ asset('storage/' . $b->file_path) }}">
+                                        <a href="javascript:void(0)" class="view-berkas" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6b7280;cursor:pointer;text-decoration:none" title="Lihat" data-url="{{ route('admin.pendaftaran.berkas.lihat', $b) }}">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                         @if($pendaftaran->is_submitted)
@@ -167,7 +167,7 @@
                                 </td>
                                 <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
                                     <div class="d-flex justify-content-center gap-1">
-                                        <a href="javascript:void(0)" class="view-berkas" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6b7280;cursor:pointer;text-decoration:none" title="Lihat" data-url="{{ asset('storage/' . $porto->file_path) }}">
+                                        <a href="javascript:void(0)" class="view-berkas" style="background:none;border:1px solid #d1d5db;border-radius:6px;padding:0.2rem 0.5rem;font-size:0.75rem;color:#6b7280;cursor:pointer;text-decoration:none" title="Lihat" data-url="{{ route('admin.pendaftaran.portofolio.lihat', $porto) }}">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
                                         @if($pendaftaran->is_submitted)

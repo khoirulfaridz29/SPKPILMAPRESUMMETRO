@@ -201,7 +201,7 @@
                                 </td>
                                 <td style="padding:0.7rem 0"><span class="badge bg-info text-dark">{{ $porto->kategori_jenjang }}</span></td>
                                 <td style="padding:0.7rem 0.5rem 0.7rem 0;text-align:center">
-                                    <a href="{{ asset('storage/' . $porto->file_path) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
+                                    <a href="{{ route('mahasiswa.portofolio.lihat', $porto) }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-eye"></i></a>
                                     @if(!$pendaftaran->is_submitted)
                                     <form action="{{ route('mahasiswa.berkas.portofolio.destroy', $porto->id) }}" method="POST" class="d-inline">
                                         @csrf @method('DELETE')

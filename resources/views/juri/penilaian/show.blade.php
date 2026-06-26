@@ -51,7 +51,7 @@
                 @forelse($pendaftaran->berkas as $b)
                 <li class="list-group-item d-flex justify-content-between align-items-center px-3 py-2 border-0 border-bottom" style="border-color:var(--border-color)!important;background:transparent">
                     <small class="text-truncate me-2">{{ $b->nama_berkas }}</small>
-                    <a href="javascript:void(0)" class="view-berkas flex-shrink-0" style="color:var(--primary-light);font-size:0.85rem" data-url="{{ asset('storage/'.$b->file_path) }}">
+                    <a href="javascript:void(0)" class="view-berkas flex-shrink-0" style="color:var(--primary-light);font-size:0.85rem" data-url="{{ route('berkas.view', $b) }}">
                         <i class="fa-solid fa-eye"></i>
                     </a>
                 </li>
@@ -85,7 +85,7 @@
                                 @endif
                             </div>
                         </div>
-                        <a href="javascript:void(0)" class="view-berkas flex-shrink-0" style="color:var(--primary-light);font-size:0.85rem" data-url="{{ asset('storage/'.$porto->file_path) }}">
+                        <a href="javascript:void(0)" class="view-berkas flex-shrink-0" style="color:var(--primary-light);font-size:0.85rem" data-url="{{ route('portofolio.view', $porto) }}">
                             <i class="fa-solid fa-eye"></i>
                         </a>
                     </div>

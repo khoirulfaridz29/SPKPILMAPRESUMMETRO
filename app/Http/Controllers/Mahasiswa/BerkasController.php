@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\BerkasPendaftaran;
 use App\Models\Pendaftaran;
 use App\Models\Mahasiswa;
+use App\Models\PortofolioCu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -173,6 +174,21 @@ class BerkasController extends Controller
         Storage::disk('public')->delete($berkas->file_path);
         $berkas->delete();
         return back()->with('success', 'Berkas berhasil dihapus.');
+    }
+
+    public function lihatPortofolio(PortofolioCu $portofolio)
+    {
+        $pendaftaran = $this->getPendaftaran();
+        abort_if($portofolio->pendaftaran_id !== $pendaftaran?->id, 403);
+
+        if (Storage::disk('berkas')->exists($portofolio->file_path)) {
+            return Storage::disk('berkas')->response($portofolio->file_path);
+        }
+
+        $path = Storage::disk('public')->path($portofolio->file_path);
+        abort_if(!file_exists($path), 404);
+
+        return response()->file($path);
     }
 
     public function destroyPortofolio($id)
