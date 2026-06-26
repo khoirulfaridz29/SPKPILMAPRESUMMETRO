@@ -76,12 +76,32 @@
             <label class="form-label" for="program_studi">Program Studi</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="fa-solid fa-graduation-cap"></i></span>
-                <input type="text" id="program_studi" name="program_studi" class="form-control @error('program_studi') is-invalid @enderror" value="{{ old('program_studi') }}" required readonly placeholder="Terisi otomatis berdasarkan NPM">
+                <select id="program_studi" name="program_studi" class="form-control @error('program_studi') is-invalid @enderror" required>
+                    <option value="">— Pilih Program Studi —</option>
+                    <option value="Akuntansi" {{ old('program_studi') == 'Akuntansi' ? 'selected' : '' }}>Akuntansi</option>
+                    <option value="Bimbingan dan Konseling" {{ old('program_studi') == 'Bimbingan dan Konseling' ? 'selected' : '' }}>Bimbingan dan Konseling</option>
+                    <option value="Ilmu Hukum" {{ old('program_studi') == 'Ilmu Hukum' ? 'selected' : '' }}>Ilmu Hukum</option>
+                    <option value="Ilmu Komputer" {{ old('program_studi') == 'Ilmu Komputer' ? 'selected' : '' }}>Ilmu Komputer</option>
+                    <option value="Kedokteran" {{ old('program_studi') == 'Kedokteran' ? 'selected' : '' }}>Kedokteran</option>
+                    <option value="Komunikasi dan Penyiaran Islam" {{ old('program_studi') == 'Komunikasi dan Penyiaran Islam' ? 'selected' : '' }}>Komunikasi dan Penyiaran Islam</option>
+                    <option value="Manajemen" {{ old('program_studi') == 'Manajemen' ? 'selected' : '' }}>Manajemen</option>
+                    <option value="Manajemen Pendidikan Islam" {{ old('program_studi') == 'Manajemen Pendidikan Islam' ? 'selected' : '' }}>Manajemen Pendidikan Islam</option>
+                    <option value="Pendidikan Agama Islam" {{ old('program_studi') == 'Pendidikan Agama Islam' ? 'selected' : '' }}>Pendidikan Agama Islam</option>
+                    <option value="Pendidikan Bahasa Inggris" {{ old('program_studi') == 'Pendidikan Bahasa Inggris' ? 'selected' : '' }}>Pendidikan Bahasa Inggris</option>
+                    <option value="Pendidikan Biologi" {{ old('program_studi') == 'Pendidikan Biologi' ? 'selected' : '' }}>Pendidikan Biologi</option>
+                    <option value="Pendidikan Ekonomi" {{ old('program_studi') == 'Pendidikan Ekonomi' ? 'selected' : '' }}>Pendidikan Ekonomi</option>
+                    <option value="Pendidikan Fisika" {{ old('program_studi') == 'Pendidikan Fisika' ? 'selected' : '' }}>Pendidikan Fisika</option>
+                    <option value="Pendidikan Islam Anak Usia Dini" {{ old('program_studi') == 'Pendidikan Islam Anak Usia Dini' ? 'selected' : '' }}>Pendidikan Islam Anak Usia Dini</option>
+                    <option value="Pendidikan Matematika" {{ old('program_studi') == 'Pendidikan Matematika' ? 'selected' : '' }}>Pendidikan Matematika</option>
+                    <option value="Pendidikan Sejarah" {{ old('program_studi') == 'Pendidikan Sejarah' ? 'selected' : '' }}>Pendidikan Sejarah</option>
+                    <option value="Pendidikan Teknologi Informasi" {{ old('program_studi') == 'Pendidikan Teknologi Informasi' ? 'selected' : '' }}>Pendidikan Teknologi Informasi</option>
+                    <option value="Teknik Mesin" {{ old('program_studi') == 'Teknik Mesin' ? 'selected' : '' }}>Teknik Mesin</option>
+                    <option value="Teknik Sipil" {{ old('program_studi') == 'Teknik Sipil' ? 'selected' : '' }}>Teknik Sipil</option>
+                </select>
                 @error('program_studi')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-            <small class="text-muted" style="font-size:11px">Prodi akan terisi otomatis berdasarkan NPM.</small>
         </div>
 
         <div class="mb-3">
@@ -184,20 +204,6 @@
         });
     }
 
-    fetch('/api/program-studi')
-        .then(function(r) { return r.json(); })
-        .then(function(mapping) {
-            document.getElementById('nim').addEventListener('input', function() {
-                var nim = this.value;
-                var prodiField = document.getElementById('program_studi');
-                if (nim.length >= 4) {
-                    var kode = nim.substring(2, 4);
-                    prodiField.value = mapping[kode] || 'Prodi Tidak Terdaftar (' + kode + ')';
-                } else {
-                    prodiField.value = '';
-                }
-            });
-        });
 })();
 </script>
 @endsection

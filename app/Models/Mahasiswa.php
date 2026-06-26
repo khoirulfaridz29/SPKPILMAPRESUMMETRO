@@ -42,9 +42,7 @@ class Mahasiswa extends Model
 
     public function getParsedProdiAttribute()
     {
-        $mapping = self::getProdiMapping();
-        $kode = $this->kode_prodi;
-        return $mapping[$kode] ?? 'Prodi Tidak Terdefinisi (' . $kode . ')';
+        return $this->program_studi ?? 'Prodi Tidak Terdefinisi';
     }
 
     public function user()
