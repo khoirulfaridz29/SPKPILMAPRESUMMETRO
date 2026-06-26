@@ -49,7 +49,7 @@ return [
 
         'berkas' => [
             'driver' => 'local',
-            'root' => storage_path('app/private/berkas'),
+            'root' => env('BERKAS_PATH', storage_path('app/private/berkas')),
             'throw' => false,
         ],
 
