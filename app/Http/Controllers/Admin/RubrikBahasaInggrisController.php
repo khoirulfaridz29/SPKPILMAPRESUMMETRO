@@ -45,7 +45,7 @@ class RubrikBahasaInggrisController extends Controller
     {
         $jenjangs = Jenjang::orderBy('id')->get();
         $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik_bahasa_inggri->jenjang_id)->get()
-            ->filter(fn($k) => $k->tipe_kriteria === 'bahasa_inggris');
+            ->filter(fn($k) => in_array($k->tipe_kriteria, ['bahasa_inggris', 'custom']));
         return view('admin.rubrik_bahasa_inggris.edit', compact('rubrik_bahasa_inggri', 'jenjangs', 'kriterias'));
     }
 

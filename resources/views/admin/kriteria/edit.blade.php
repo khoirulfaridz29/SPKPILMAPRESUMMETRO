@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.kriteria.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+    <a href="{{ route('admin.kriteria.index', ['jenjang_id' => $kriteria->jenjang_id]) }}" class="btn btn-sm btn-outline-secondary me-2">
         <i class="fa-solid fa-arrow-left me-1"></i> Kembali
     </a>
     <span class="fw-bold fs-5">Edit Kriteria: {{ $kriteria->nama_kriteria }}</span>

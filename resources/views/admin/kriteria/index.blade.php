@@ -4,7 +4,7 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="fw-bold mb-0">Kriteria Penilaian</h4>
-    <a href="{{ route('admin.kriteria.create') }}" class="btn btn-primary">
+    <a href="{{ route('admin.kriteria.create', request()->only('jenjang_id')) }}" class="btn btn-primary">
         <i class="fa-solid fa-plus me-2"></i> Tambah Kriteria
     </a>
 </div>

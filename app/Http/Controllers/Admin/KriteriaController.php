@@ -43,8 +43,8 @@ class KriteriaController extends Controller
             $data['nama_kriteria'] = $request->custom_nama_kriteria;
         }
 
-        KriteriaPenilaian::create($data);
-        return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil ditambahkan.');
+        $kriteria = KriteriaPenilaian::create($data);
+        return redirect()->route('admin.kriteria.index', ['jenjang_id' => $kriteria->jenjang_id])->with('success', 'Kriteria berhasil ditambahkan.');
     }
 
     public function update(KriteriaRequest $request, KriteriaPenilaian $kriteria)
@@ -63,8 +63,9 @@ class KriteriaController extends Controller
             $data['nama_kriteria'] = $request->custom_nama_kriteria;
         }
 
+        $data['jenjang_id'] = $kriteria->jenjang_id;
         $kriteria->update($data);
-        return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
+        return redirect()->route('admin.kriteria.index', ['jenjang_id' => $kriteria->jenjang_id])->with('success', 'Kriteria berhasil diperbarui.');
     }
 
     public function edit(KriteriaPenilaian $kriteria)

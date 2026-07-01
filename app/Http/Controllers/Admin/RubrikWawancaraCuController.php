@@ -46,7 +46,7 @@ class RubrikWawancaraCuController extends Controller
         $rubrik = RubrikWawancaraCu::findOrFail($id);
         $jenjangs = Jenjang::orderBy('id')->get();
         $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik->jenjang_id)->get()
-            ->filter(fn($k) => $k->tipe_kriteria === 'wawancara_cu');
+            ->filter(fn($k) => in_array($k->tipe_kriteria, ['wawancara_cu', 'custom']));
         return view('admin.rubrik_wawancara_cu.edit', compact('rubrik', 'jenjangs', 'kriterias'));
     }
 

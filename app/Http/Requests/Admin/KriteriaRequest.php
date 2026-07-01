@@ -18,7 +18,9 @@ class KriteriaRequest extends FormRequest
             'jenjang_id'        => 'required|exists:jenjang,id',
             'kode_kriteria'     => [
                 'required', 'string', 'max:50',
-                Rule::unique('kriteria_penilaian', 'kode_kriteria')->ignore($this->kriteria),
+                Rule::unique('kriteria_penilaian', 'kode_kriteria')
+                    ->where(fn($q) => $q->where('jenjang_id', $this->jenjang_id))
+                    ->ignore($this->kriteria),
             ],
             'nama_kriteria'     => 'required|string|max:255',
             'custom_nama_kriteria' => 'nullable|string|max:255',

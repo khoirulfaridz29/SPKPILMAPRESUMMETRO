@@ -45,7 +45,7 @@ class RubrikNaskahGkController extends Controller
     {
         $jenjangs = Jenjang::orderBy('id')->get();
         $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik_naskah_gk->jenjang_id)->get()
-            ->filter(fn($k) => $k->tipe_kriteria === 'naskah_gk');
+            ->filter(fn($k) => in_array($k->tipe_kriteria, ['naskah_gk', 'custom']));
         return view('admin.rubrik_naskah_gk.edit', compact('rubrik_naskah_gk', 'jenjangs', 'kriterias'));
     }
 

@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.kriteria.index') }}" class="btn btn-sm btn-outline-secondary me-2">
+    <a href="{{ route('admin.kriteria.index', request()->only('jenjang_id')) }}" class="btn btn-sm btn-outline-secondary me-2">
         <i class="fa-solid fa-arrow-left me-1"></i> Kembali
     </a>
     <span class="fw-bold fs-5">Tambah Kriteria Penilaian</span>
@@ -18,7 +18,7 @@
                 <select name="jenjang_id" id="jenjang_id" class="form-select @error('jenjang_id') is-invalid @enderror" required>
                     <option value="">-- Pilih Jenjang --</option>
                     @foreach($jenjangs as $j)
-                    <option value="{{ $j->id }}" {{ old('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                    <option value="{{ $j->id }}" {{ old('jenjang_id', request('jenjang_id')) == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
                     @endforeach
                 </select>
                 @error('jenjang_id')<div class="invalid-feedback">{{ $message }}</div>@enderror

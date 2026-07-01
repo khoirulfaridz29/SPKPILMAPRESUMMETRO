@@ -82,7 +82,7 @@
             transition: opacity 0.2s;
         }
         .sidebar.collapsed .sidebar-brand .brand-sub { opacity: 0; }
-        .sidebar-nav { padding: 15px 12px; flex: 1; overflow-y: auto; overflow-anchor: none; }
+        .sidebar-nav { padding: 15px 12px; flex: 1; overflow-y: auto; }
         .nav-section-label {
             font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
             color: rgba(255,255,255,0.35); text-transform: uppercase;
@@ -244,11 +244,14 @@
         .collapse-chevron.rotated {
             transform: rotate(180deg);
         }
-        #collapseRubrik {
+        .sidebar-collapse {
             padding-left: 0;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
         }
-        #collapseRubrik .collapse {
-            padding-left: 0;
+        .sidebar-collapse.open {
+            max-height: 2000px;
         }
 
         /* HIDE SCROLLBAR UI, KEEP FUNCTION + STABLE GUTTER */
@@ -519,18 +522,18 @@
                 $rubrikPrefixes = ['admin.rubrik-cu', 'admin.rubrik-naskah-gk', 'admin.rubrik-presentasi-gk', 'admin.rubrik-bahasa-inggris', 'admin.rubrik-wawancara-cu'];
                 $isRubrikActive = collect($rubrikPrefixes)->contains(fn($p) => request()->routeIs($p . '*'));
             @endphp
-            <a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#collapseRubrik" role="button" class="nav-link">
+            <a href="javascript:void(0)" onclick="toggleRubrik()" class="nav-link">
                 <i class="fa-solid fa-book-open fa-fw"></i><span class="nav-label"> Rubrik Penilaian</span>
-                <i class="fa-solid fa-chevron-down ms-auto collapse-chevron {{ $isRubrikActive ? 'rotated' : '' }}"></i>
+                <i class="fa-solid fa-chevron-down ms-auto collapse-chevron {{ $isRubrikActive ? 'rotated' : '' }}" id="rubrikChevron"></i>
             </a>
-            <div class="collapse {{ $isRubrikActive ? 'show' : '' }}" id="collapseRubrik">
+            <div class="sidebar-collapse {{ $isRubrikActive ? 'open' : '' }}" id="collapseRubrik">
                 @foreach($sidebarJenjangs as $sj)
                 @php $isSJActive = $isRubrikActive && request('jenjang_id') == $sj->id; @endphp
-                <a href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#collapseJenjang{{ $sj->id }}" role="button" class="nav-link" style="padding-left:24px;font-size:13px">
+                <a href="javascript:void(0)" onclick="toggleJenjang('{{ $sj->id }}')" class="nav-link" style="padding-left:24px;font-size:13px">
                     <i class="fa-solid fa-graduation-cap fa-fw"></i><span class="nav-label"> {{ $sj->nama_jenjang }}</span>
-                    <i class="fa-solid fa-chevron-down ms-auto collapse-chevron {{ $isSJActive ? 'rotated' : '' }}"></i>
+                    <i class="fa-solid fa-chevron-down ms-auto collapse-chevron {{ $isSJActive ? 'rotated' : '' }}" id="chevron{{ $sj->id }}"></i>
                 </a>
-                <div class="collapse {{ $isSJActive ? 'show' : '' }}" id="collapseJenjang{{ $sj->id }}">
+                <div class="sidebar-collapse {{ $isSJActive ? 'open' : '' }}" id="collapseJenjang{{ $sj->id }}">
                     @php $rl = $rubrikLabels[$sj->id] ?? []; @endphp
                     @if($rl['cu']['exists'] ?? true)
                     <a href="{{ route('admin.rubrik-cu.index', ['jenjang_id' => $sj->id]) }}" class="nav-link {{ request()->routeIs('admin.rubrik-cu*') && request('jenjang_id') == $sj->id ? 'active' : '' }}" style="padding-left:36px;font-size:12px">
@@ -902,26 +905,10 @@
             // Prevent collapse togglers from firing in collapsed mode
             sidebar.addEventListener('click', function(e) {
                 if (!sidebar.classList.contains('collapsed')) return;
-                if (e.target.closest('[data-bs-toggle="collapse"]')) {
+                if (e.target.closest('.nav-link')) {
                     e.stopPropagation();
                 }
             }, true);
-
-            // Chevron rotation on collapse events
-            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function(toggler) {
-                const targetId = toggler.getAttribute('data-bs-target') || toggler.getAttribute('href');
-                if (!targetId) return;
-                const target = document.querySelector(targetId);
-                if (!target) return;
-                const chevron = toggler.querySelector('.collapse-chevron');
-                if (!chevron) return;
-                target.addEventListener('show.bs.collapse', function() {
-                    chevron.classList.add('rotated');
-                });
-                target.addEventListener('hide.bs.collapse', function() {
-                    chevron.classList.remove('rotated');
-                });
-            });
         }
 
         // Clean up before Turbo caches page (prevents duplicate tooltips & stale intervals)
@@ -939,6 +926,19 @@
 
         document.addEventListener('DOMContentLoaded', initSidebar);
         document.addEventListener('turbo:load', initSidebar);
+
+        function toggleRubrik() {
+            var el = document.getElementById('collapseRubrik');
+            var ch = document.getElementById('rubrikChevron');
+            el.classList.toggle('open');
+            if (ch) ch.classList.toggle('rotated');
+        }
+        function toggleJenjang(id) {
+            var el = document.getElementById('collapseJenjang' + id);
+            var ch = document.getElementById('chevron' + id);
+            el.classList.toggle('open');
+            if (ch) ch.classList.toggle('rotated');
+        }
     </script>
     @stack('scripts')
 </body>
