@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('rubrik-presentasi-gk', \App\Http\Controllers\Admin\RubrikPresentasiGkController::class);
         Route::resource('rubrik-bahasa-inggris', \App\Http\Controllers\Admin\RubrikBahasaInggrisController::class);
         Route::resource('rubrik-wawancara-cu', \App\Http\Controllers\Admin\RubrikWawancaraCuController::class);
+        Route::resource('rubrik-custom', \App\Http\Controllers\Admin\RubrikCustomController::class);
 
         // Manajemen Jadwal, Pengumuman, & Persyaratan
         Route::resource('jadwal', JadwalController::class);

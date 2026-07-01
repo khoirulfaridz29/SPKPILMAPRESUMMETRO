@@ -557,6 +557,13 @@
                         <i class="fa-solid fa-microphone fa-fw"></i><span class="nav-label"> {{ $rl['wawancara']['label'] ?? 'Wawancara CU' }}</span>
                     </a>
                     @endif
+                    @foreach($rubrikLabels[$sj->id] ?? [] as $key => $rlItem)
+                        @if(str_starts_with($key, 'custom_') && ($rlItem['exists'] ?? false))
+                        <a href="{{ route('admin.rubrik-custom.index') }}" class="nav-link" style="padding-left:36px;font-size:12px">
+                            <i class="fa-solid fa-puzzle-piece fa-fw"></i><span class="nav-label"> {{ $rlItem['label'] }}</span>
+                        </a>
+                        @endif
+                    @endforeach
                 </div>
                 @endforeach
             </div>

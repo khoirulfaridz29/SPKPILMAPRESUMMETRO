@@ -9,6 +9,7 @@ use App\Models\RubrikNaskahGk;
 use App\Models\RubrikPresentasiGk;
 use App\Models\RubrikBahasaInggris;
 use App\Models\RubrikWawancaraCu;
+use App\Models\RubrikCustomTemplate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
@@ -65,6 +66,21 @@ class SidebarComposer
                     'exists' => $rubrikTypesFromKriteria->contains('wawancara_cu'),
                 ],
             ];
+        }
+
+        $customTemplates = RubrikCustomTemplate::with('fields')->get();
+        foreach ($sidebarJenjangs as $sj) {
+            foreach ($customTemplates as $ct) {
+                $hasCustom = KriteriaPenilaian::where('jenjang_id', $sj->id)
+                    ->where('nama_kriteria', $ct->nama_template)
+                    ->exists();
+                if ($hasCustom) {
+                    $rubrikLabels[$sj->id]['custom_' . $ct->id] = [
+                        'label' => $ct->nama_template,
+                        'exists' => true,
+                    ];
+                }
+            }
         }
 
         $unreadNotifs = NotificationApp::where('user_id', Auth::id())
