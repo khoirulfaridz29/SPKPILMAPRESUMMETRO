@@ -417,6 +417,7 @@ class PerhitunganController extends Controller
         $kriterias = $kriteriasQuery->get();
 
         $kriteriasMap = $kriterias->pluck('id', 'kode_kriteria');
+        $kriteriaNama = $kriterias->pluck('nama_kriteria', 'kode_kriteria');
         // Peta bobot kriteria dari database (kode => bobot persen).
         // Dipakai agar perhitungan di export SELALU sinkron dengan proses() yang
         // memakai $k->bobot, sehingga tidak melenceng bila bobot diubah dari DB.
@@ -550,12 +551,12 @@ class PerhitunganController extends Controller
         $sheet3->setCellValue('A1', 'NAMA MAHASISWA');
         $sheet3->setCellValue('B1', 'NPM');
         $sheet3->setCellValue('C1', 'JURI PENILAI');
-        $sheet3->setCellValue('D1', 'A01 (CU Berkas)');
-        $sheet3->setCellValue('E1', 'A02 (GK Naskah)');
-        $sheet3->setCellValue('F1', 'A03 (BI Video)');
-        $sheet3->setCellValue('G1', 'F01 (CU Wawancara)');
-        $sheet3->setCellValue('H1', 'F02 (GK Presentasi)');
-        $sheet3->setCellValue('I1', 'F03 (BI Lisan)');
+        $sheet3->setCellValue('D1', 'A01 (' . ($kriteriaNama['A01'] ?? 'CU Berkas') . ')');
+        $sheet3->setCellValue('E1', 'A02 (' . ($kriteriaNama['A02'] ?? 'GK Naskah') . ')');
+        $sheet3->setCellValue('F1', 'A03 (' . ($kriteriaNama['A03'] ?? 'BI Video') . ')');
+        $sheet3->setCellValue('G1', 'F01 (' . ($kriteriaNama['F01'] ?? 'CU Wawancara') . ')');
+        $sheet3->setCellValue('H1', 'F02 (' . ($kriteriaNama['F02'] ?? 'GK Presentasi') . ')');
+        $sheet3->setCellValue('I1', 'F03 (' . ($kriteriaNama['F03'] ?? 'BI Lisan') . ')');
 
         $row = 2;
         foreach ($hasilList as $h) {
@@ -596,11 +597,11 @@ class PerhitunganController extends Controller
         $spreadsheet->addSheet($sheet4);
         $sheet4->setCellValue('A1', 'NAMA MAHASISWA');
         $sheet4->setCellValue('B1', 'AVG A01');
-        $sheet4->setCellValue('C1', 'WEIGHTED A01 (AVG*35%)');
+        $sheet4->setCellValue('C1', 'WEIGHTED A01 (AVG*' . ($bobotMap->get('A01', 35)) . '%)');
         $sheet4->setCellValue('D1', 'AVG A02');
-        $sheet4->setCellValue('E1', 'WEIGHTED A02 (AVG*35%)');
+        $sheet4->setCellValue('E1', 'WEIGHTED A02 (AVG*' . ($bobotMap->get('A02', 35)) . '%)');
         $sheet4->setCellValue('F1', 'AVG A03');
-        $sheet4->setCellValue('G1', 'WEIGHTED A03 (AVG*30%)');
+        $sheet4->setCellValue('G1', 'WEIGHTED A03 (AVG*' . ($bobotMap->get('A03', 30)) . '%)');
 
         $row = 2;
         foreach ($hasilList as $h) {
@@ -637,11 +638,11 @@ class PerhitunganController extends Controller
         $spreadsheet->addSheet($sheet5);
         $sheet5->setCellValue('A1', 'NAMA MAHASISWA');
         $sheet5->setCellValue('B1', 'AVG F01');
-        $sheet5->setCellValue('C1', 'WEIGHTED F01 (AVG*35%)');
+        $sheet5->setCellValue('C1', 'WEIGHTED F01 (AVG*' . ($bobotMap->get('F01', 35)) . '%)');
         $sheet5->setCellValue('D1', 'AVG F02');
-        $sheet5->setCellValue('E1', 'WEIGHTED F02 (AVG*35%)');
+        $sheet5->setCellValue('E1', 'WEIGHTED F02 (AVG*' . ($bobotMap->get('F02', 35)) . '%)');
         $sheet5->setCellValue('F1', 'AVG F03');
-        $sheet5->setCellValue('G1', 'WEIGHTED F03 (AVG*30%)');
+        $sheet5->setCellValue('G1', 'WEIGHTED F03 (AVG*' . ($bobotMap->get('F03', 30)) . '%)');
 
         $row = 2;
         foreach ($hasilList as $h) {
