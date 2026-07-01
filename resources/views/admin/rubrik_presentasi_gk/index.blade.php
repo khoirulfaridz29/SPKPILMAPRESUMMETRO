@@ -25,7 +25,7 @@
                 <tbody>
                     @foreach($rubriks as $r)
                     <tr style="border-bottom:1px solid #f3f4f6">
-                        <td style="padding:0.7rem 0 0.7rem 1rem;font-weight:600">{{ $r->label ?? 'Presentasi GK' }}</td>
+                        <td style="padding:0.7rem 0 0.7rem 1rem;font-weight:600">{{ $r->kriteria?->nama_kriteria ?? $r->label ?? 'Presentasi GK' }}</td>
                         <td style="padding:0.7rem 0;white-space:nowrap">{{ $r->aspek_penilaian }}</td>
                         <td style="padding:0.7rem 0;white-space:nowrap">{{ $r->kriteria_penilaian }}</td>
                         <td style="padding:0.7rem 0">{{ $r->bobot }}</td>
