@@ -17,8 +17,7 @@ class RubrikWawancaraCuController extends Controller
             $query->where('jenjang_id', $request->jenjang_id);
         }
         $rubriks = $query->with('jenjang')->get();
-        $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_wawancara_cu.index', compact('rubriks', 'jenjangs'));
+        return view('admin.rubrik_wawancara_cu.index', compact('rubriks'));
     }
 
     public function create()
@@ -27,9 +26,20 @@ class RubrikWawancaraCuController extends Controller
         return view('admin.rubrik_wawancara_cu.create', compact('jenjangs'));
     }
 
+    private function resolveLabel($request)
+    {
+        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
+            return $request->label_select;
+        }
+        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+    }
+
     public function store(RubrikWawancaraCuRequest $request)
     {
-        RubrikWawancaraCu::create($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        RubrikWawancaraCu::create($data);
 
         return redirect()->route('admin.rubrik-wawancara-cu.index')->with('success', 'Rubrik Wawancara CU berhasil ditambahkan.');
     }
@@ -44,7 +54,10 @@ class RubrikWawancaraCuController extends Controller
     public function update(RubrikWawancaraCuRequest $request, $id)
     {
         $rubrik = RubrikWawancaraCu::findOrFail($id);
-        $rubrik->update($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        $rubrik->update($data);
 
         return redirect()->route('admin.rubrik-wawancara-cu.index')->with('success', 'Rubrik Wawancara CU berhasil diperbarui.');
     }

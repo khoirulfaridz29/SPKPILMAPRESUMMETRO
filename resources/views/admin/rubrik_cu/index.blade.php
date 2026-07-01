@@ -9,19 +9,6 @@
     </a>
 </div>
 
-<form method="GET" class="mb-3">
-    <div class="row g-2 align-items-end">
-        <div class="col-auto">
-            <select name="jenjang_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="">Semua Jenjang</option>
-                @foreach($jenjangs as $j)
-                <option value="{{ $j->id }}" {{ request('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
-                @endforeach
-            </select>
-        </div>
-    </div>
-</form>
-
 <div class="card border-0 shadow-sm" style="border-radius:var(--radius)">
     <div class="card-body p-0">
         <div class="table-responsive">

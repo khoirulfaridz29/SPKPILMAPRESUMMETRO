@@ -17,7 +17,7 @@
         <p class="text-muted small mb-0">Perangkingan peserta per jenjang berdasarkan perhitungan GAP profile matching.</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.perhitungan.export', request()->only('jenjang_id')) }}" class="btn btn-outline-dark btn-custom px-3 fw-semibold btn-sm">
+        <a href="{{ route('admin.perhitungan.export', request()->only('jenjang_id', 'tahun')) }}" class="btn btn-outline-dark btn-custom px-3 fw-semibold btn-sm">
             <i class="fa-solid fa-file-excel me-1"></i> Export
         </a>
     </div>
@@ -37,6 +37,15 @@
                             <option value="">Semua Jenjang</option>
                             @foreach($jenjangList as $j)
                                 <option value="{{ $j->id }}" {{ $selectedJenjang == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="tahun">Tahun</label>
+                        <select name="tahun" id="tahun" class="form-select">
+                            <option value="">Semua Tahun</option>
+                            @foreach($years as $y)
+                                <option value="{{ $y }}" {{ $selectedTahun == $y ? 'selected' : '' }}>{{ $y }}</option>
                             @endforeach
                         </select>
                     </div>

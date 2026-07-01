@@ -276,7 +276,6 @@ class PenilaianController extends Controller
 
         // Load all rubrik per jenjang (bulk: only 4 queries total, regardless of jenjang count)
         $jenjangIds = $grouped->keys()->filter(fn($id) => $id > 0);
-        $rubrikLabels = [];
         $rubrikNaskahAll = \App\Models\RubrikNaskahGk::whereIn('jenjang_id', $jenjangIds)
             ->get(['id','jenjang_id','aspek_penilaian','kriteria_penilaian','bobot'])->groupBy('jenjang_id');
         $rubrikPresentasiAll = \App\Models\RubrikPresentasiGk::whereIn('jenjang_id', $jenjangIds)

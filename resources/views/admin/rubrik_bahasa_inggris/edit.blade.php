@@ -18,9 +18,21 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="label">Label Tampilan <small class="text-muted">(cth: Bahasa Inggris)</small></label>
-                <input type="text" name="label" id="label" class="form-control" value="{{ $rubrik_bahasa_inggri->label }}" placeholder="Kosongkan untuk default">
+                <label class="form-label" for="label_select">Label Tampilan</label>
+                @php $labelOpts = ['Bahasa Inggris','English Proficiency']; @endphp
+                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
+                    <option value="">-- Default --</option>
+                    @foreach($labelOpts as $opt)
+                    <option value="{{ $opt }}" {{ $rubrik_bahasa_inggri->label == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                    @endforeach
+                    <option value="__custom__" {{ $rubrik_bahasa_inggri->label && !in_array($rubrik_bahasa_inggri->label, $labelOpts) ? 'selected' : '' }}>Lainnya...</option>
+                </select>
+                <input type="text" name="label" id="label_custom" class="form-control mt-2"
+                    style="display:{{ $rubrik_bahasa_inggri->label && !in_array($rubrik_bahasa_inggri->label, $labelOpts) ? 'block' : 'none' }}"
+                    value="{{ $rubrik_bahasa_inggri->label && !in_array($rubrik_bahasa_inggri->label, $labelOpts) ? $rubrik_bahasa_inggri->label : '' }}"
+                    placeholder="Masukkan label kustom">
             </div>
+            <script>function toggleLabelCustom(s){var c=document.getElementById('label_custom');if(!c)return;c.style.display=s.value==='__custom__'?'block':'none';if(s.value!=='__custom__')c.value='';}</script>
             <div class="mb-3">
                 <label class="form-label fw-bold" for="field">Field Penilaian</label>
                 <input type="text" name="field" id="field" class="form-control" value="{{ $rubrik_bahasa_inggri->field }}" required>

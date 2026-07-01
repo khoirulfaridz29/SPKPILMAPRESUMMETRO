@@ -30,9 +30,21 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="label">Label Tampilan <small class="text-muted">(cth: Naskah GK, Produk Inovatif)</small></label>
-                <input type="text" name="label" id="label" class="form-control" value="{{ $rubrik_naskah_gk->label }}" placeholder="Kosongkan untuk default">
+                <label class="form-label" for="label_select">Label Tampilan</label>
+                @php $labelOpts = ['Naskah Gagasan Kreatif','Produk Inovatif','Karya Tulis Ilmiah']; @endphp
+                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
+                    <option value="">-- Default --</option>
+                    @foreach($labelOpts as $opt)
+                    <option value="{{ $opt }}" {{ $rubrik_naskah_gk->label == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                    @endforeach
+                    <option value="__custom__" {{ $rubrik_naskah_gk->label && !in_array($rubrik_naskah_gk->label, $labelOpts) ? 'selected' : '' }}>Lainnya...</option>
+                </select>
+                <input type="text" name="label" id="label_custom" class="form-control mt-2"
+                    style="display:{{ $rubrik_naskah_gk->label && !in_array($rubrik_naskah_gk->label, $labelOpts) ? 'block' : 'none' }}"
+                    value="{{ $rubrik_naskah_gk->label && !in_array($rubrik_naskah_gk->label, $labelOpts) ? $rubrik_naskah_gk->label : '' }}"
+                    placeholder="Masukkan label kustom">
             </div>
+            <script>function toggleLabelCustom(s){var c=document.getElementById('label_custom');if(!c)return;c.style.display=s.value==='__custom__'?'block':'none';if(s.value!=='__custom__')c.value='';}</script>
             <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.rubrik-naskah-gk.index') }}" class="btn btn-secondary">Batal</a>
                 <button type="submit" class="btn btn-primary">Simpan Perubahan</button>

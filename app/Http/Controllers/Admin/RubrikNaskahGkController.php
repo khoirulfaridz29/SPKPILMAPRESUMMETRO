@@ -17,8 +17,7 @@ class RubrikNaskahGkController extends Controller
             $query->where('jenjang_id', $request->jenjang_id);
         }
         $rubriks = $query->with('jenjang')->get();
-        $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_naskah_gk.index', compact('rubriks', 'jenjangs'));
+        return view('admin.rubrik_naskah_gk.index', compact('rubriks'));
     }
 
     public function create()
@@ -29,7 +28,10 @@ class RubrikNaskahGkController extends Controller
 
     public function store(RubrikNaskahGkRequest $request)
     {
-        RubrikNaskahGk::create($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        RubrikNaskahGk::create($data);
 
         return redirect()->route('admin.rubrik-naskah-gk.index')->with('success', 'Rubrik Naskah GK berhasil ditambahkan.');
     }
@@ -40,9 +42,20 @@ class RubrikNaskahGkController extends Controller
         return view('admin.rubrik_naskah_gk.edit', compact('rubrik_naskah_gk', 'jenjangs'));
     }
 
+    private function resolveLabel($request)
+    {
+        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
+            return $request->label_select;
+        }
+        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+    }
+
     public function update(RubrikNaskahGkRequest $request, RubrikNaskahGk $rubrik_naskah_gk)
     {
-        $rubrik_naskah_gk->update($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        $rubrik_naskah_gk->update($data);
 
         return redirect()->route('admin.rubrik-naskah-gk.index')->with('success', 'Rubrik Naskah GK berhasil diperbarui.');
     }

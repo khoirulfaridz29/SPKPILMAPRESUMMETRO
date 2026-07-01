@@ -133,7 +133,7 @@ $getBobot = function($hasil) use ($bobotPerJenjang) {
         <p class="text-muted small mb-0">Sistem Pendukung Keputusan Pemilihan Mahasiswa Berprestasi (Pilmapres) | Metode Profile Matching</p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{{ route('admin.perhitungan.export', $selectedJenjang ? ['jenjang_id' => $selectedJenjang] : []) }}" class="btn btn-success px-3 btn-custom fw-semibold">
+        <a href="{{ route('admin.perhitungan.export', array_filter(['jenjang_id' => $selectedJenjang, 'tahun' => $selectedTahun])) }}" class="btn btn-success px-3 btn-custom fw-semibold">
             <i class="fa-solid fa-file-excel me-2"></i> Ekspor Excel (9 Sheet)
         </a>
         <a href="{{ route('admin.perhitungan.index') }}" class="btn btn-outline-secondary px-3 btn-custom">
@@ -149,16 +149,29 @@ $getBobot = function($hasil) use ($bobotPerJenjang) {
 </div>
 @endif
 
-<div class="d-flex gap-2 mb-3 flex-wrap">
+<div class="d-flex gap-2 mb-2 flex-wrap">
     <span class="fw-semibold small text-muted me-1 align-self-center">Filter Jenjang:</span>
-    <a href="{{ route('admin.perhitungan.hasil') }}"
+    <a href="{{ route('admin.perhitungan.hasil', request()->only('tahun')) }}"
        class="btn btn-sm {{ !$selectedJenjang ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
         Semua
     </a>
     @foreach($jenjangList as $j)
-    <a href="{{ route('admin.perhitungan.hasil', ['jenjang_id' => $j->id]) }}"
+    <a href="{{ route('admin.perhitungan.hasil', ['jenjang_id' => $j->id] + request()->only('tahun')) }}"
        class="btn btn-sm {{ $selectedJenjang == $j->id ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
         <i class="fa-solid fa-graduation-cap me-1"></i> {{ $j->nama_jenjang }}
+    </a>
+    @endforeach
+</div>
+<div class="d-flex gap-2 mb-3 flex-wrap">
+    <span class="fw-semibold small text-muted me-1 align-self-center">Filter Tahun:</span>
+    <a href="{{ route('admin.perhitungan.hasil', request()->only('jenjang_id')) }}"
+       class="btn btn-sm {{ !$selectedTahun ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
+        Semua
+    </a>
+    @foreach($years as $y)
+    <a href="{{ route('admin.perhitungan.hasil', ['tahun' => $y] + request()->only('jenjang_id')) }}"
+       class="btn btn-sm {{ $selectedTahun == $y ? 'btn-primary' : 'btn-outline-primary' }} btn-custom px-3">
+        <i class="fa-solid fa-calendar me-1"></i> {{ $y }}
     </a>
     @endforeach
 </div>

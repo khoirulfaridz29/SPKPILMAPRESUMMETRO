@@ -17,8 +17,7 @@ class RubrikBahasaInggrisController extends Controller
             $query->where('jenjang_id', $request->jenjang_id);
         }
         $rubriks = $query->with('jenjang')->get();
-        $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_bahasa_inggris.index', compact('rubriks', 'jenjangs'));
+        return view('admin.rubrik_bahasa_inggris.index', compact('rubriks'));
     }
 
     public function create()
@@ -27,9 +26,20 @@ class RubrikBahasaInggrisController extends Controller
         return view('admin.rubrik_bahasa_inggris.create', compact('jenjangs'));
     }
 
+    private function resolveLabel($request)
+    {
+        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
+            return $request->label_select;
+        }
+        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+    }
+
     public function store(RubrikBahasaInggrisRequest $request)
     {
-        RubrikBahasaInggris::create($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        RubrikBahasaInggris::create($data);
 
         return redirect()->route('admin.rubrik-bahasa-inggris.index')->with('success', 'Rubrik Bahasa Inggris berhasil ditambahkan.');
     }
@@ -42,7 +52,10 @@ class RubrikBahasaInggrisController extends Controller
 
     public function update(RubrikBahasaInggrisRequest $request, RubrikBahasaInggris $rubrik_bahasa_inggri)
     {
-        $rubrik_bahasa_inggri->update($request->validated());
+        $data = $request->validated();
+        $data['label'] = $this->resolveLabel($request);
+
+        $rubrik_bahasa_inggri->update($data);
 
         return redirect()->route('admin.rubrik-bahasa-inggris.index')->with('success', 'Rubrik Bahasa Inggris berhasil diperbarui.');
     }

@@ -14,6 +14,7 @@ class RubrikBahasaInggrisRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'jenjang_id'        => 'required|exists:jenjang,id',
             'field'             => 'required|string|max:255',
             'excellent_score'   => 'required|string|max:50',
             'excellent_criteria' => 'required|string',

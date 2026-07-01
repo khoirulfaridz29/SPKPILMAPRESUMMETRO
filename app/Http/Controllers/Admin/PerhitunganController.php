@@ -70,6 +70,8 @@ class PerhitunganController extends Controller
 
     public function proses(Request $request)
     {
+        $tahun = $request->tahun ?? now()->year;
+
         $allKriterias = KriteriaPenilaian::with('jenjang')->get();
         $kriteriasByJenjang = $allKriterias->groupBy('jenjang_id');
 
@@ -79,6 +81,8 @@ class PerhitunganController extends Controller
         if ($request->filled('jenjang_id')) {
             $query->whereHas('mahasiswa', fn($q) => $q->where('jenjang_id', $request->jenjang_id));
         }
+
+        $query->whereYear('tanggal_daftar', $tahun);
 
         $pesertaLolos = $query->get();
 
@@ -233,6 +237,7 @@ class PerhitunganController extends Controller
 
         // Perangkingan per jenjang — setiap jenjang punya Juara 1, 2, 3 sendiri
         $hasilByJenjang = HasilPenilaian::with('pendaftaran.mahasiswa')
+            ->whereHas('pendaftaran', fn($q) => $q->whereYear('tanggal_daftar', $tahun))
             ->orderByDesc('nilai_total')
             ->orderBy('id', 'asc')
             ->get()
@@ -266,7 +271,8 @@ class PerhitunganController extends Controller
         $this->notifyAllRole('wr3', 'Perhitungan nilai PILMAPRES telah selesai. Silakan lakukan validasi akhir.', 'info');
         $this->notifyAllRole('mahasiswa', 'Proses penilaian telah selesai. Hasil akhir akan segera diumumkan.', 'info');
 
-        return redirect()->route('admin.perhitungan.index', $request->filled('jenjang_id') ? ['jenjang_id' => $request->jenjang_id] : [])
+        $redirectParams = array_filter(['jenjang_id' => $request->jenjang_id, 'tahun' => $tahun]);
+        return redirect()->route('admin.perhitungan.index', $redirectParams)
             ->with('success', 'Perhitungan GAP skala 1-10 selesai. Hasil perangkingan telah diperbarui.');
     }
 
@@ -306,6 +312,12 @@ class PerhitunganController extends Controller
             );
         }
 
+        if ($request->filled('tahun')) {
+            $query->whereHas('pendaftaran', fn($q) =>
+                $q->whereYear('tanggal_daftar', $request->tahun)
+            );
+        }
+
         $hasilList = $query->orderBy('ranking')->get();
         $jenjangList = \App\Models\Jenjang::orderBy('id')->get();
 
@@ -322,8 +334,14 @@ class PerhitunganController extends Controller
         }
 
         $selectedJenjang = $request->jenjang_id;
+        $selectedTahun = $request->tahun;
+        $years = Pendaftaran::where('status_seleksi', 'Lolos Tahap 1')
+            ->selectRaw('YEAR(tanggal_daftar) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
 
-        return view('admin.perhitungan.ranking', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang'));
+        return view('admin.perhitungan.ranking', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang', 'selectedTahun', 'years'));
     }
 
     public function hasil(Request $request)
@@ -333,6 +351,12 @@ class PerhitunganController extends Controller
         if ($request->filled('jenjang_id')) {
             $query->whereHas('pendaftaran.mahasiswa', fn($q) =>
                 $q->where('jenjang_id', $request->jenjang_id)
+            );
+        }
+
+        if ($request->filled('tahun')) {
+            $query->whereHas('pendaftaran', fn($q) =>
+                $q->whereYear('tanggal_daftar', $request->tahun)
             );
         }
 
@@ -358,7 +382,14 @@ class PerhitunganController extends Controller
         }
 
         $selectedJenjang = $request->jenjang_id;
-        return view('admin.perhitungan.hasil', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang'));
+        $selectedTahun = $request->tahun;
+        $years = Pendaftaran::where('status_seleksi', 'Lolos Tahap 1')
+            ->selectRaw('YEAR(tanggal_daftar) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        return view('admin.perhitungan.hasil', compact('hasilList', 'kriterias', 'jenjangList', 'bobotPerJenjang', 'juries', 'selectedJenjang', 'selectedTahun', 'years'));
     }
 
     public function export(Request $request)
@@ -368,6 +399,12 @@ class PerhitunganController extends Controller
         if ($request->filled('jenjang_id')) {
             $query->whereHas('pendaftaran.mahasiswa', fn($q) =>
                 $q->where('jenjang_id', $request->jenjang_id)
+            );
+        }
+
+        if ($request->filled('tahun')) {
+            $query->whereHas('pendaftaran', fn($q) =>
+                $q->whereYear('tanggal_daftar', $request->tahun)
             );
         }
 
@@ -811,7 +848,8 @@ class PerhitunganController extends Controller
 
         // Redirect output to a client’s web browser (Xlsx)
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="PERHITUNGAN_SPK_PILMAPRES_' . date('Ymd_His') . '.xlsx"');
+        $exportTahun = $request->tahun ? '_' . $request->tahun : '';
+        header('Content-Disposition: attachment;filename="PERHITUNGAN_SPK_PILMAPRES' . $exportTahun . '_' . date('Ymd_His') . '.xlsx"');
         header('Cache-Control: max-age=0');
 
         $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);

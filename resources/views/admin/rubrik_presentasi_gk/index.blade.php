@@ -9,18 +9,6 @@
             <i class="fa-solid fa-plus"></i> Tambah Kriteria
         </a>
     </div>
-    <div class="card-body pb-0">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-auto">
-                <select name="jenjang_id" class="form-select form-select-sm" onchange="this.form.submit()">
-                    <option value="">Semua Jenjang</option>
-                    @foreach($jenjangs as $j)
-                    <option value="{{ $j->id }}" {{ request('jenjang_id') == $j->id ? 'selected' : '' }}>{{ $j->nama_jenjang }}</option>
-                    @endforeach
-                </select>
-            </div>
-        </form>
-    </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table style="width:100%;border-collapse:collapse;border-spacing:0;font-size:0.82rem">

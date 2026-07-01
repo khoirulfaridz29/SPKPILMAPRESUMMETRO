@@ -19,8 +19,14 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="label">Label Tampilan <small class="text-muted">(cth: Bahasa Inggris)</small></label>
-                <input type="text" name="label" id="label" class="form-control" placeholder="Kosongkan untuk default">
+                <label class="form-label" for="label_select">Label Tampilan</label>
+                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
+                    <option value="">-- Default (Bahasa Inggris) --</option>
+                    <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    <option value="English Proficiency">English Proficiency</option>
+                    <option value="__custom__">Lainnya...</option>
+                </select>
+                <input type="text" name="label" id="label_custom" class="form-control mt-2" style="display:none" placeholder="Masukkan label kustom">
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold" for="field">Field Penilaian</label>

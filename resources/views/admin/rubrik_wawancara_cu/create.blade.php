@@ -23,8 +23,13 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold" for="label">Label Tampilan <small class="text-muted">(cth: Wawancara CU)</small></label>
-                <input type="text" name="label" id="label" class="form-control" placeholder="Kosongkan untuk default">
+                <label class="form-label fw-bold" for="label_select">Label Tampilan</label>
+                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
+                    <option value="">-- Default (Wawancara CU) --</option>
+                    <option value="Wawancara Capaian Unggulan">Wawancara Capaian Unggulan</option>
+                    <option value="__custom__">Lainnya...</option>
+                </select>
+                <input type="text" name="label" id="label_custom" class="form-control mt-2" style="display:none" placeholder="Masukkan label kustom">
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold" for="kriteria_penilaian">Kriteria Penilaian</label>

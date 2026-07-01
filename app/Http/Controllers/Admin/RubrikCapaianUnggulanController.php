@@ -16,8 +16,7 @@ class RubrikCapaianUnggulanController extends Controller
             $query->where('jenjang_id', $request->jenjang_id);
         }
         $rubriks = $query->with('jenjang')->orderBy('id', 'asc')->get();
-        $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_cu.index', compact('rubriks', 'jenjangs'));
+        return view('admin.rubrik_cu.index', compact('rubriks'));
     }
 
     public function create()
@@ -29,6 +28,7 @@ class RubrikCapaianUnggulanController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
+            'jenjang_id' => 'required|exists:jenjang,id',
             'bidang' => 'required|string|max:255',
             'wujud_capaian_unggulan' => 'required|string|max:255',
             'kode_internasional' => 'nullable|string|max:50',
@@ -62,6 +62,7 @@ class RubrikCapaianUnggulanController extends Controller
     public function update(Request $request, string $id)
     {
         $data = $request->validate([
+            'jenjang_id' => 'required|exists:jenjang,id',
             'bidang' => 'required|string|max:255',
             'wujud_capaian_unggulan' => 'required|string|max:255',
             'kode_internasional' => 'nullable|string|max:50',
