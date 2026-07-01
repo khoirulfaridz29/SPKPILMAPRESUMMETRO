@@ -29,20 +29,48 @@ class KriteriaController extends Controller
 
     public function store(KriteriaRequest $request)
     {
-        KriteriaPenilaian::create($request->validated());
+        $data = $request->validated();
+        $kodeMap = [
+            'Naskah Gagasan Kreatif' => 'A02',
+            'Presentasi Gagasan Kreatif' => 'F02',
+            'Wawancara Capaian Unggulan' => 'F01',
+            'Portofolio Capaian Unggulan' => 'A01',
+        ];
+
+        if (isset($kodeMap[$data['nama_kriteria']])) {
+            $data['kode_kriteria'] = $kodeMap[$data['nama_kriteria']];
+        } elseif ($data['nama_kriteria'] === '__custom__') {
+            $data['nama_kriteria'] = $request->custom_nama_kriteria;
+        }
+
+        KriteriaPenilaian::create($data);
         return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil ditambahkan.');
+    }
+
+    public function update(KriteriaRequest $request, KriteriaPenilaian $kriteria)
+    {
+        $data = $request->validated();
+        $kodeMap = [
+            'Naskah Gagasan Kreatif' => 'A02',
+            'Presentasi Gagasan Kreatif' => 'F02',
+            'Wawancara Capaian Unggulan' => 'F01',
+            'Portofolio Capaian Unggulan' => 'A01',
+        ];
+
+        if (isset($kodeMap[$data['nama_kriteria']])) {
+            $data['kode_kriteria'] = $kodeMap[$data['nama_kriteria']];
+        } elseif ($data['nama_kriteria'] === '__custom__') {
+            $data['nama_kriteria'] = $request->custom_nama_kriteria;
+        }
+
+        $kriteria->update($data);
+        return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
     }
 
     public function edit(KriteriaPenilaian $kriteria)
     {
         $jenjangs = Jenjang::orderBy('id')->get();
         return view('admin.kriteria.edit', compact('kriteria', 'jenjangs'));
-    }
-
-    public function update(KriteriaRequest $request, KriteriaPenilaian $kriteria)
-    {
-        $kriteria->update($request->validated());
-        return redirect()->route('admin.kriteria.index')->with('success', 'Kriteria berhasil diperbarui.');
     }
 
     public function destroy(KriteriaPenilaian $kriteria)

@@ -26,14 +26,25 @@
             <div class="mb-3">
                 <label for="kode_kriteria" class="form-label fw-semibold">Kode Kriteria</label>
                 <input type="text" name="kode_kriteria" id="kode_kriteria" class="form-control @error('kode_kriteria') is-invalid @enderror"
-                    value="{{ old('kode_kriteria') }}" placeholder="Cth: K1" required>
+                    value="{{ old('kode_kriteria') }}" placeholder="Otomatis" required>
                 @error('kode_kriteria')<div class="invalid-feedback">{{ $message }}</div>@enderror
             </div>
             <div class="mb-3">
-                <label for="nama_kriteria" class="form-label fw-semibold">Nama Kriteria</label>
-                <input type="text" name="nama_kriteria" id="nama_kriteria" class="form-control @error('nama_kriteria') is-invalid @enderror"
-                    value="{{ old('nama_kriteria') }}" placeholder="Cth: IPK" required>
+                <label class="form-label fw-semibold">Tipe Kriteria</label>
+                <select name="nama_kriteria" id="tipe_kriteria" class="form-select @error('nama_kriteria') is-invalid @enderror" onchange="onTipeChange(this)" required>
+                    <option value="">-- Pilih Tipe --</option>
+                    <option value="Naskah Gagasan Kreatif" data-kode="A02">Naskah Gagasan Kreatif</option>
+                    <option value="Presentasi Gagasan Kreatif" data-kode="F02">Presentasi Gagasan Kreatif</option>
+                    <option value="Bahasa Inggris" data-kode="">Bahasa Inggris</option>
+                    <option value="Wawancara Capaian Unggulan" data-kode="F01">Wawancara Capaian Unggulan</option>
+                    <option value="Portofolio Capaian Unggulan" data-kode="A01">Portofolio Capaian Unggulan</option>
+                    <option value="__custom__" data-kode="">Lainnya (custom)...</option>
+                </select>
                 @error('nama_kriteria')<div class="invalid-feedback">{{ $message }}</div>@enderror
+            </div>
+            <div class="mb-3" id="custom_nama_wrapper" style="display:none">
+                <label class="form-label fw-semibold">Nama Kriteria Kustom</label>
+                <input type="text" name="custom_nama_kriteria" class="form-control" placeholder="Masukkan nama kriteria baru">
             </div>
             <div class="mb-3">
                 <label for="jenis_faktor" class="form-label fw-semibold">Tahap Seleksi</label>
@@ -70,4 +81,27 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function onTipeChange(sel) {
+    var kode = document.getElementById('kode_kriteria');
+    var opt = sel.options[sel.selectedIndex];
+    var isCustom = sel.value === '__custom__';
+    document.getElementById('custom_nama_wrapper').style.display = isCustom ? 'block' : 'none';
+    if (isCustom) {
+        kode.readOnly = false;
+        kode.value = '';
+        kode.placeholder = 'Masukkan kode';
+    } else if (opt && opt.dataset.kode) {
+        kode.value = opt.dataset.kode;
+        kode.readOnly = true;
+    } else {
+        kode.readOnly = false;
+        kode.value = '';
+        kode.placeholder = 'Otomatis (kosongkan)';
+    }
+}
+</script>
+@endpush
 @endsection
