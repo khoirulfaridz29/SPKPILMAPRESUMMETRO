@@ -31,14 +31,13 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="label_select">Label Tampilan</label>
-                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
-                    <option value="">-- Default (Presentasi GK) --</option>
-                    <option value="Presentasi Gagasan Kreatif">Presentasi Gagasan Kreatif</option>
-                    <option value="Presentasi Produk Inovatif">Presentasi Produk Inovatif</option>
-                    <option value="__custom__">Lainnya...</option>
+                <label class="form-label">Pilih Kriteria</label>
+                <select name="kriteria_id" id="kriteria_id" class="form-control">
+                    <option value="">-- Default --</option>
+                    @foreach($kriterias as $k)
+                    <option value="{{ $k->id }}" {{ old('kriteria_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kriteria }} ({{ $k->kode_kriteria }})</option>
+                    @endforeach
                 </select>
-                <input type="text" name="label" id="label_custom" class="form-control mt-2" style="display:none" placeholder="Masukkan label kustom">
             </div>
             <div class="d-flex justify-content-between">
                 <a href="{{ route('admin.rubrik-presentasi-gk.index') }}" class="btn btn-secondary">Batal</a>

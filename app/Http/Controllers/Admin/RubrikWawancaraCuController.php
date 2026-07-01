@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\RubrikWawancaraCuRequest;
 use App\Models\RubrikWawancaraCu;
 use Illuminate\Http\Request;
 use App\Models\Jenjang;
+use App\Models\KriteriaPenilaian;
 
 class RubrikWawancaraCuController extends Controller
 {
@@ -23,21 +24,17 @@ class RubrikWawancaraCuController extends Controller
     public function create()
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_wawancara_cu.create', compact('jenjangs'));
-    }
-
-    private function resolveLabel($request)
-    {
-        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
-            return $request->label_select;
-        }
-        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+        $kriterias = collect();
+        return view('admin.rubrik_wawancara_cu.create', compact('jenjangs', 'kriterias'));
     }
 
     public function store(RubrikWawancaraCuRequest $request)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         RubrikWawancaraCu::create($data);
 
@@ -48,14 +45,19 @@ class RubrikWawancaraCuController extends Controller
     {
         $rubrik = RubrikWawancaraCu::findOrFail($id);
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_wawancara_cu.edit', compact('rubrik', 'jenjangs'));
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik->jenjang_id)->get()
+            ->filter(fn($k) => $k->tipe_kriteria === 'wawancara_cu');
+        return view('admin.rubrik_wawancara_cu.edit', compact('rubrik', 'jenjangs', 'kriterias'));
     }
 
     public function update(RubrikWawancaraCuRequest $request, $id)
     {
         $rubrik = RubrikWawancaraCu::findOrFail($id);
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         $rubrik->update($data);
 

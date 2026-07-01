@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\RubrikBahasaInggrisRequest;
 use App\Models\RubrikBahasaInggris;
 use Illuminate\Http\Request;
 use App\Models\Jenjang;
+use App\Models\KriteriaPenilaian;
 
 class RubrikBahasaInggrisController extends Controller
 {
@@ -23,21 +24,17 @@ class RubrikBahasaInggrisController extends Controller
     public function create()
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_bahasa_inggris.create', compact('jenjangs'));
-    }
-
-    private function resolveLabel($request)
-    {
-        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
-            return $request->label_select;
-        }
-        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+        $kriterias = collect();
+        return view('admin.rubrik_bahasa_inggris.create', compact('jenjangs', 'kriterias'));
     }
 
     public function store(RubrikBahasaInggrisRequest $request)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         RubrikBahasaInggris::create($data);
 
@@ -47,13 +44,18 @@ class RubrikBahasaInggrisController extends Controller
     public function edit(RubrikBahasaInggris $rubrik_bahasa_inggri)
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_bahasa_inggris.edit', compact('rubrik_bahasa_inggri', 'jenjangs'));
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik_bahasa_inggri->jenjang_id)->get()
+            ->filter(fn($k) => $k->tipe_kriteria === 'bahasa_inggris');
+        return view('admin.rubrik_bahasa_inggris.edit', compact('rubrik_bahasa_inggri', 'jenjangs', 'kriterias'));
     }
 
     public function update(RubrikBahasaInggrisRequest $request, RubrikBahasaInggris $rubrik_bahasa_inggri)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         $rubrik_bahasa_inggri->update($data);
 

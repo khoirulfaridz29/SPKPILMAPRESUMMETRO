@@ -25,6 +25,7 @@ class RubrikBahasaInggrisRequest extends FormRequest
             'poor_score'        => 'required|string|max:50',
             'poor_criteria'     => 'required|string',
             'label'             => 'nullable|string|max:255',
+            'kriteria_id'       => 'nullable|exists:kriteria_penilaian,id',
         ];
     }
 }

@@ -14,6 +14,15 @@
         <form action="{{ route('admin.rubrik-cu.update', $rubrik->id) }}" method="POST">
             @csrf @method('PUT')
             <div class="mb-3">
+                <label class="form-label">Pilih Kriteria</label>
+                <select name="kriteria_id" id="kriteria_id" class="form-control">
+                    <option value="">-- Default --</option>
+                    @foreach($kriterias as $k)
+                    <option value="{{ $k->id }}" {{ $rubrik->kriteria_id == $k->id ? 'selected' : '' }}>{{ $k->nama_kriteria }} ({{ $k->kode_kriteria }})</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="mb-3">
                 <label class="form-label" for="jenjang_id">Jenjang</label>
                 <select name="jenjang_id" id="jenjang_id" class="form-control" required>
                     @foreach($jenjangs as $j)

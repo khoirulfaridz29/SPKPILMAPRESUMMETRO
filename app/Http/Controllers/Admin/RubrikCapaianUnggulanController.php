@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RubrikCapaianUnggulan;
 use App\Models\Jenjang;
+use App\Models\KriteriaPenilaian;
 
 class RubrikCapaianUnggulanController extends Controller
 {
@@ -22,13 +23,15 @@ class RubrikCapaianUnggulanController extends Controller
     public function create()
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_cu.create', compact('jenjangs'));
+        $kriterias = collect();
+        return view('admin.rubrik_cu.create', compact('jenjangs', 'kriterias'));
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
             'jenjang_id' => 'required|exists:jenjang,id',
+            'kriteria_id' => 'nullable|exists:kriteria_penilaian,id',
             'bidang' => 'required|string|max:255',
             'wujud_capaian_unggulan' => 'required|string|max:255',
             'kode_internasional' => 'nullable|string|max:50',
@@ -42,6 +45,11 @@ class RubrikCapaianUnggulanController extends Controller
             'kode_kab_kota' => 'nullable|string|max:50',
             'skor_kab_kota' => 'nullable|string|max:50',
         ]);
+
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         RubrikCapaianUnggulan::create($data);
         return redirect()->route('admin.rubrik-cu.index')->with('success', 'Data rubrik berhasil ditambahkan.');
@@ -56,13 +64,16 @@ class RubrikCapaianUnggulanController extends Controller
     {
         $rubrik = RubrikCapaianUnggulan::findOrFail($id);
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_cu.edit', compact('rubrik', 'jenjangs'));
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik->jenjang_id)->get()
+            ->filter(fn($k) => $k->tipe_kriteria === 'cu');
+        return view('admin.rubrik_cu.edit', compact('rubrik', 'jenjangs', 'kriterias'));
     }
 
     public function update(Request $request, string $id)
     {
         $data = $request->validate([
             'jenjang_id' => 'required|exists:jenjang,id',
+            'kriteria_id' => 'nullable|exists:kriteria_penilaian,id',
             'bidang' => 'required|string|max:255',
             'wujud_capaian_unggulan' => 'required|string|max:255',
             'kode_internasional' => 'nullable|string|max:50',
@@ -78,6 +89,10 @@ class RubrikCapaianUnggulanController extends Controller
         ]);
 
         $rubrik = RubrikCapaianUnggulan::findOrFail($id);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
         $rubrik->update($data);
         return redirect()->route('admin.rubrik-cu.index')->with('success', 'Data rubrik berhasil diperbarui.');
     }

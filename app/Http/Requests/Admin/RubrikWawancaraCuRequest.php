@@ -18,6 +18,7 @@ class RubrikWawancaraCuRequest extends FormRequest
             'kriteria_penilaian' => 'required|string|max:255',
             'bobot'              => 'required|numeric|min:1',
             'label'              => 'nullable|string|max:255',
+            'kriteria_id'        => 'nullable|exists:kriteria_penilaian,id',
         ];
     }
 }

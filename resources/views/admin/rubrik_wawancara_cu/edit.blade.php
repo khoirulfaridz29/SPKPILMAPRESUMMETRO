@@ -23,21 +23,14 @@
                 </select>
             </div>
             <div class="mb-3">
-                <label class="form-label fw-bold" for="label_select">Label Tampilan</label>
-                @php $labelOpts = ['Wawancara Capaian Unggulan']; @endphp
-                <select name="label_select" id="label_select" class="form-control" onchange="toggleLabelCustom(this)">
+                <label class="form-label fw-bold">Pilih Kriteria</label>
+                <select name="kriteria_id" id="kriteria_id" class="form-control">
                     <option value="">-- Default --</option>
-                    @foreach($labelOpts as $opt)
-                    <option value="{{ $opt }}" {{ $rubrik->label == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                    @foreach($kriterias as $k)
+                    <option value="{{ $k->id }}" {{ $rubrik->kriteria_id == $k->id ? 'selected' : '' }}>{{ $k->nama_kriteria }} ({{ $k->kode_kriteria }})</option>
                     @endforeach
-                    <option value="__custom__" {{ $rubrik->label && !in_array($rubrik->label, $labelOpts) ? 'selected' : '' }}>Lainnya...</option>
                 </select>
-                <input type="text" name="label" id="label_custom" class="form-control mt-2"
-                    style="display:{{ $rubrik->label && !in_array($rubrik->label, $labelOpts) ? 'block' : 'none' }}"
-                    value="{{ $rubrik->label && !in_array($rubrik->label, $labelOpts) ? $rubrik->label : '' }}"
-                    placeholder="Masukkan label kustom">
             </div>
-            <script>function toggleLabelCustom(s){var c=document.getElementById('label_custom');if(!c)return;c.style.display=s.value==='__custom__'?'block':'none';if(s.value!=='__custom__')c.value='';}</script>
             <div class="mb-3">
                 <label class="form-label fw-bold" for="kriteria_penilaian">Kriteria Penilaian</label>
                 <input type="text" name="kriteria_penilaian" id="kriteria_penilaian" class="form-control" value="{{ $rubrik->kriteria_penilaian }}" required>

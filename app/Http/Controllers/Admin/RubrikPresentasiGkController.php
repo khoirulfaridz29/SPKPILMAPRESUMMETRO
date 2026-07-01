@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\RubrikPresentasiGkRequest;
 use App\Models\RubrikPresentasiGk;
 use Illuminate\Http\Request;
 use App\Models\Jenjang;
+use App\Models\KriteriaPenilaian;
 
 class RubrikPresentasiGkController extends Controller
 {
@@ -23,21 +24,17 @@ class RubrikPresentasiGkController extends Controller
     public function create()
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_presentasi_gk.create', compact('jenjangs'));
-    }
-
-    private function resolveLabel($request)
-    {
-        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
-            return $request->label_select;
-        }
-        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+        $kriterias = collect();
+        return view('admin.rubrik_presentasi_gk.create', compact('jenjangs', 'kriterias'));
     }
 
     public function store(RubrikPresentasiGkRequest $request)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         RubrikPresentasiGk::create($data);
 
@@ -47,13 +44,18 @@ class RubrikPresentasiGkController extends Controller
     public function edit(RubrikPresentasiGk $rubrik_presentasi_gk)
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_presentasi_gk.edit', compact('rubrik_presentasi_gk', 'jenjangs'));
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik_presentasi_gk->jenjang_id)->get()
+            ->filter(fn($k) => $k->tipe_kriteria === 'presentasi_gk');
+        return view('admin.rubrik_presentasi_gk.edit', compact('rubrik_presentasi_gk', 'jenjangs', 'kriterias'));
     }
 
     public function update(RubrikPresentasiGkRequest $request, RubrikPresentasiGk $rubrik_presentasi_gk)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         $rubrik_presentasi_gk->update($data);
 

@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\RubrikNaskahGkRequest;
 use App\Models\RubrikNaskahGk;
 use Illuminate\Http\Request;
 use App\Models\Jenjang;
+use App\Models\KriteriaPenilaian;
 
 class RubrikNaskahGkController extends Controller
 {
@@ -23,13 +24,17 @@ class RubrikNaskahGkController extends Controller
     public function create()
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_naskah_gk.create', compact('jenjangs'));
+        $kriterias = collect();
+        return view('admin.rubrik_naskah_gk.create', compact('jenjangs', 'kriterias'));
     }
 
     public function store(RubrikNaskahGkRequest $request)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         RubrikNaskahGk::create($data);
 
@@ -39,21 +44,18 @@ class RubrikNaskahGkController extends Controller
     public function edit(RubrikNaskahGk $rubrik_naskah_gk)
     {
         $jenjangs = Jenjang::orderBy('id')->get();
-        return view('admin.rubrik_naskah_gk.edit', compact('rubrik_naskah_gk', 'jenjangs'));
-    }
-
-    private function resolveLabel($request)
-    {
-        if ($request->filled('label_select') && $request->label_select !== '__custom__') {
-            return $request->label_select;
-        }
-        return $request->label_select === '__custom__' ? ($request->label ?: null) : null;
+        $kriterias = KriteriaPenilaian::where('jenjang_id', $rubrik_naskah_gk->jenjang_id)->get()
+            ->filter(fn($k) => $k->tipe_kriteria === 'naskah_gk');
+        return view('admin.rubrik_naskah_gk.edit', compact('rubrik_naskah_gk', 'jenjangs', 'kriterias'));
     }
 
     public function update(RubrikNaskahGkRequest $request, RubrikNaskahGk $rubrik_naskah_gk)
     {
         $data = $request->validated();
-        $data['label'] = $this->resolveLabel($request);
+        if (!empty($data['kriteria_id'])) {
+            $kriteria = KriteriaPenilaian::find($data['kriteria_id']);
+            $data['label'] = $kriteria?->nama_kriteria;
+        }
 
         $rubrik_naskah_gk->update($data);
 
