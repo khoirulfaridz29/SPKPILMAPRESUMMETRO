@@ -10,6 +10,7 @@ class RubrikCapaianUnggulan extends Model
 
     protected $fillable = [
         'jenjang_id',
+        'kriteria_id',
         'bidang',
         'wujud_capaian_unggulan',
         'kode_internasional',
@@ -27,5 +28,10 @@ class RubrikCapaianUnggulan extends Model
     public function jenjang()
     {
         return $this->belongsTo(Jenjang::class);
+    }
+
+    public function kriteria()
+    {
+        return $this->belongsTo(KriteriaPenilaian::class, 'kriteria_id');
     }
 }

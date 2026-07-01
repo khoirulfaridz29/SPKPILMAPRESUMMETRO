@@ -10,6 +10,7 @@ class RubrikWawancaraCu extends Model
 
     protected $fillable = [
         'jenjang_id',
+        'kriteria_id',
         'label',
         'kriteria_penilaian',
         'bobot',
@@ -18,5 +19,10 @@ class RubrikWawancaraCu extends Model
     public function jenjang()
     {
         return $this->belongsTo(Jenjang::class);
+    }
+
+    public function kriteria()
+    {
+        return $this->belongsTo(KriteriaPenilaian::class, 'kriteria_id');
     }
 }
