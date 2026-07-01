@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             JenjangSeeder::class,
             TipeFaktorSeeder::class,
             ProgramStudiSeeder::class,
+            BackfillKriteriaIdSeeder::class,
         ]);
     }
 }
