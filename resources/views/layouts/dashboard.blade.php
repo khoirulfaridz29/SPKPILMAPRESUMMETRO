@@ -530,7 +530,7 @@
                     <i class="fa-solid fa-graduation-cap fa-fw"></i><span class="nav-label"> {{ $sj->nama_jenjang }}</span>
                     <i class="fa-solid fa-chevron-down ms-auto collapse-chevron {{ $isSJActive ? 'rotated' : '' }}"></i>
                 </a>
-                <div class="collapse {{ $isSJActive ? 'show' : '' }}" id="collapseJenjang{{ $sj->id }}" data-bs-parent="#collapseRubrik">
+                <div class="collapse {{ $isSJActive ? 'show' : '' }}" id="collapseJenjang{{ $sj->id }}">
                     @php $rl = $rubrikLabels[$sj->id] ?? []; @endphp
                     @if($rl['cu']['exists'] ?? true)
                     <a href="{{ route('admin.rubrik-cu.index', ['jenjang_id' => $sj->id]) }}" class="nav-link {{ request()->routeIs('admin.rubrik-cu*') && request('jenjang_id') == $sj->id ? 'active' : '' }}" style="padding-left:36px;font-size:12px">
